@@ -47,6 +47,28 @@ fn main() {
             let _ = robot.pump_frames(6);
             save(&robot, &out_dir, "app-explore-list.png");
 
+            let _ = robot.drag(200.0, 700.0, 200.0, 500.0);
+            let _ = robot.pump_frames(4);
+            let _ = robot.drag(200.0, 700.0, 200.0, 500.0);
+            let _ = robot.pump_frames(8);
+            save(&robot, &out_dir, "app-explore-header-collapsed.png");
+            let _ = robot.drag(200.0, 300.0, 200.0, 900.0);
+            let _ = robot.pump_frames(4);
+            let _ = robot.drag(200.0, 300.0, 200.0, 900.0);
+            let _ = robot.pump_frames(8);
+
+            if let Ok(Some((x, y, w, h))) = robot.find_button_bounds("Saved") {
+                let cx = x + w * 0.5;
+                let cy = y + h * 0.5;
+                let _ = robot.touch_down(cx, cy);
+                let _ = robot.pump_frames(8);
+                save(&robot, &out_dir, "app-tabbar-pressed.png");
+                let _ = robot.touch_up(cx, cy);
+                let _ = robot.pump_frames(4);
+            } else {
+                println!("could not find the Saved tab to test the press state");
+            }
+
             if let Ok(Some((x, y, w, h))) = robot.find_text_bounds("Earth") {
                 let _ = robot.click(x + w * 0.5, y + h * 0.5);
                 std::thread::sleep(Duration::from_millis(650));

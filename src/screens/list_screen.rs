@@ -13,6 +13,7 @@ use cranpose_ui_graphics::Stroke;
 
 use crate::model::{BodyKind, CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
+use crate::widgets::header_glass::HeaderBlurRamp;
 use crate::widgets::planet::PlanetSphere;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -407,9 +408,11 @@ pub fn ListScreen(
                 },
             );
 
+            let nav_spec = LiquidNavBarSpec::new(title);
+            HeaderBlurRamp(nav_spec.collapse_range);
             LiquidNavBar(
                 Modifier::empty().fill_max_width(),
-                LiquidNavBarSpec::new(title),
+                nav_spec,
                 scroll,
                 || {},
                 || {},

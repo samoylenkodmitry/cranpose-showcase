@@ -10,6 +10,7 @@ use cranpose_ui::text::{FontWeight, TextUnit};
 use crate::model::{CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
 use crate::screens::list_screen::FavoriteButton;
+use crate::widgets::header_glass::HeaderBlurRamp;
 use crate::widgets::planet::PlanetSphere;
 use crate::widgets::starfield::Starfield;
 
@@ -31,6 +32,16 @@ fn primary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
         },
         ..Default::default()
     })
+}
+
+/// The Liquid Glass material shared by every panel on the detail screen: a
+/// rounded-rect frost that reads calmly against the starfield without
+/// competing with the header's own regular-glass band.
+fn panel_glass(colors: LiquidColors, radius: f32) -> Glass {
+    Glass::regular()
+        .shape(LiquidShape::RoundedRect(radius))
+        .blur_radius(18.0)
+        .adaptive_frost(colors.label, 0.45)
 }
 
 #[composable]
@@ -62,13 +73,9 @@ fn Hero(body: &'static CelestialBody, ambient: AmbientMotion) {
 #[composable]
 fn StatTile(label: &'static str, value: &'static str) {
     let colors = liquid_colors();
-    Box(
-        Modifier::empty()
-            .weight(1.0)
-            .background(colors.surface)
-            .rounded_corners(16.0)
-            .padding(14.0),
-        BoxSpec::default(),
+    GlassSurface(
+        Modifier::empty().weight(1.0).padding(14.0),
+        panel_glass(colors, 16.0),
         move || {
             Column(
                 Modifier::empty().fill_max_width(),
@@ -159,13 +166,9 @@ fn GravityPlayground(body: &'static CelestialBody) {
         move || {
             let weight = earth_weight.get();
             let here = weight * body.gravity_g;
-            Box(
-                Modifier::empty()
-                    .fill_max_width()
-                    .background(colors.surface)
-                    .rounded_corners(18.0)
-                    .padding(16.0),
-                BoxSpec::default(),
+            GlassSurface(
+                Modifier::empty().fill_max_width().padding(16.0),
+                panel_glass(colors, 18.0),
                 move || {
                     Column(
                         Modifier::empty().fill_max_width(),
@@ -323,9 +326,11 @@ pub fn DetailScreen(
                 },
             );
 
+            let nav_spec = LiquidNavBarSpec::new(body.name);
+            HeaderBlurRamp(nav_spec.collapse_range);
             LiquidNavBar(
                 Modifier::empty().fill_max_width(),
-                LiquidNavBarSpec::new(body.name),
+                nav_spec,
                 scroll,
                 {
                     let on_back = on_back.clone();
