@@ -1,0 +1,85 @@
+[package]
+name = "cranpose-orbit"
+version = "0.1.0"
+edition = "2021"
+description = "An interactive star-chart browser showcasing the Cranpose UI framework"
+license = "Apache-2.0"
+repository = "https://github.com/samoylenkodmitry/cranpose-orbit"
+publish = false
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--all-features"]
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "cranpose-orbit"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[[bin]]
+name = "cranpose-orbit-ios"
+path = "src/ios_main.rs"
+required-features = ["ios"]
+
+[features]
+default = ["renderer-wgpu", "desktop"]
+renderer-pixels = ["cranpose/renderer-pixels"]
+renderer-wgpu = ["cranpose/renderer-wgpu"]
+desktop = ["cranpose/desktop"]
+android = ["cranpose/android"]
+ios = ["renderer-wgpu", "cranpose/ios"]
+web = ["cranpose/web", "dep:wasm-bindgen", "dep:wasm-logger"]
+logging = ["dep:env_logger"]
+
+[dependencies]
+cranpose = { version = "0.1.104" }
+cranpose-core = "0.1.104"
+cranpose-animation = "0.1.104"
+cranpose-foundation = "0.1.104"
+cranpose-ui = "0.1.104"
+cranpose-ui-graphics = "0.1.104"
+log = "0.4"
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-logger = { version = "0.2", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = { version = "0.11", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
+    "Performance",
+    "MouseEvent",
+    "Touch",
+    "TouchList",
+    "TouchEvent",
+    "PointerEvent",
+    "WheelEvent",
+    "KeyboardEvent",
+    "CssStyleDeclaration",
+    "Navigator",
+    "Clipboard",
+    "ClipboardEvent",
+    "DataTransfer",
+] }
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
+wasm-bindgen-futures = "0.4.71"
+
+[workspace]
+
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"

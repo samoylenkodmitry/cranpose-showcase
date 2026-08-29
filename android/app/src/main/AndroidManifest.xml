@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This app declares only what is specific to it. The activity, its launcher
+    entry and the `android.app.lib_name` metadata come from the Cranpose
+    library the Gradle plugin added.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:allowBackup="true"
+        android:supportsRtl="true" />
+</manifest>
