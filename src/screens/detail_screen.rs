@@ -34,7 +34,7 @@ fn primary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
 }
 
 #[composable]
-fn Hero(body: &'static CelestialBody, sheen: f32) {
+fn Hero(body: &'static CelestialBody, ambient: AmbientMotion) {
     let colors = liquid_colors();
     Column(
         Modifier::empty().fill_max_width(),
@@ -48,7 +48,7 @@ fn Hero(body: &'static CelestialBody, sheen: f32) {
                     height: 208.0,
                 }),
                 body,
-                sheen,
+                ambient,
             );
             Text(
                 body.tagline,
@@ -199,7 +199,7 @@ fn GravityPlayground(body: &'static CelestialBody) {
 }
 
 #[composable]
-fn RelatedTile(body: &'static CelestialBody, on_open: impl Fn() + 'static) {
+fn RelatedTile(body: &'static CelestialBody, ambient: AmbientMotion, on_open: impl Fn() + 'static) {
     let colors = liquid_colors();
     Column(
         Modifier::empty()
@@ -215,7 +215,7 @@ fn RelatedTile(body: &'static CelestialBody, on_open: impl Fn() + 'static) {
                     height: 68.0,
                 }),
                 body,
-                0.5,
+                ambient,
             );
             Text(
                 body.name,
@@ -227,7 +227,11 @@ fn RelatedTile(body: &'static CelestialBody, on_open: impl Fn() + 'static) {
 }
 
 #[composable]
-fn RelatedRow(body: &'static CelestialBody, on_open: impl Fn(usize) + 'static) {
+fn RelatedRow(
+    body: &'static CelestialBody,
+    ambient: AmbientMotion,
+    on_open: impl Fn(usize) + 'static,
+) {
     if body.related.is_empty() {
         return;
     }
@@ -264,7 +268,7 @@ fn RelatedRow(body: &'static CelestialBody, on_open: impl Fn(usize) + 'static) {
                     for &target in related {
                         let related_body = &BODIES[target];
                         let on_open = on_open.clone();
-                        RelatedTile(related_body, move || on_open(target));
+                        RelatedTile(related_body, ambient, move || on_open(target));
                     }
                 },
             );
@@ -311,11 +315,11 @@ pub fn DetailScreen(
                 ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(22.0)),
                 move || {
                     let on_open_related = on_open_related.clone();
-                    Hero(body, ambient.sheen);
+                    Hero(body, ambient);
                     StatsGrid(body);
                     Description(body);
                     GravityPlayground(body);
-                    RelatedRow(body, move |target| on_open_related(target));
+                    RelatedRow(body, ambient, move |target| on_open_related(target));
                 },
             );
 

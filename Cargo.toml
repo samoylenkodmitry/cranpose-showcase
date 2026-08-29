@@ -24,6 +24,20 @@ name = "cranpose-orbit-ios"
 path = "src/ios_main.rs"
 required-features = ["ios"]
 
+# Headless visual QA only: renders the real widgets through Cranpose's Robot
+# driver and dumps PNGs, so shader/layout work can be reviewed without a
+# visible window or OS screen-recording permission. Not part of any shipped
+# target's default features.
+[[bin]]
+name = "robot-planet-gallery"
+path = "robot-runners/robot_planet_gallery.rs"
+required-features = ["robot-preview"]
+
+[[bin]]
+name = "robot-app-screens"
+path = "robot-runners/robot_app_screens.rs"
+required-features = ["robot-preview"]
+
 [features]
 default = ["renderer-wgpu", "desktop"]
 renderer-pixels = ["cranpose/renderer-pixels"]
@@ -33,6 +47,7 @@ android = ["cranpose/android"]
 ios = ["renderer-wgpu", "cranpose/ios"]
 web = ["cranpose/web", "dep:wasm-bindgen", "dep:wasm-logger"]
 logging = ["dep:env_logger"]
+robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
 cranpose = { version = "0.1.104" }
@@ -44,6 +59,7 @@ cranpose-ui-graphics = "0.1.104"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
+image = { version = "0.25", default-features = false, features = ["png"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = { version = "0.11", optional = true }

@@ -1,5 +1,7 @@
 # Cranpose Orbit
 
+**Try it live: <https://samoylenkodmitry.github.io/cranpose-orbit/>**
+
 An interactive star-chart you can browse, favorite, and poke at — built to
 show what [Cranpose](https://github.com/samoylenkodmitry/cranpose), a
 Jetpack-Compose-style declarative UI framework for Rust, looks like as a real
@@ -11,7 +13,7 @@ checkout.
 <table>
 <tr>
 <td align="center"><b>iOS Simulator</b></td>
-<td align="center"><b>Android Emulator</b></td>
+<td align="center"><b>Android Device</b></td>
 </tr>
 <tr>
 <td><img src="docs/screenshot-ios.png" width="360"></td>
@@ -33,13 +35,26 @@ categories, cross-references between them) to need actual navigation and
 state instead of a static screen.
 
 Every planet, moon, and star you see is drawn, not loaded: `PlanetSphere`
-(`src/widgets/planet.rs`) shades a lit sphere from three radial gradients and
-a specular highlight, and the starfield behind every screen
-(`src/widgets/starfield.rs`) is a few hundred procedurally placed, twinkling
-points. Nothing here is an image asset.
+(`src/widgets/planet.rs`) is one runtime WGSL shader, applied through
+`Modifier::shader_background`, shared by all fourteen bodies. Each pixel does
+a real analytic ray-sphere intersection and Lambert/specular lighting off a
+sun-direction uniform, so every world has an actual day/night terminator
+instead of a baked highlight — procedural fbm terrain for rocky bodies,
+latitude-banded flow noise for the gas giants, an independently rotating
+cloud/haze layer, a ring disc that casts its own shadow onto the sphere, and
+atmospheric rim glow. One shared shader module means the renderer compiles
+this pipeline once for the whole app, not once per body. The starfield behind
+every screen (`src/widgets/starfield.rs`) is a few hundred procedurally
+placed, twinkling points. Nothing here is an image asset.
 
 ## What it demonstrates
 
+- **A real GPU shader as the hero content, not a decoration** —
+  `Modifier::shader_background(RuntimeShader)` lets a composable's entire
+  visual come from a hand-written WGSL fragment shader instead of drawn
+  vector shapes; `src/widgets/planet.rs` is the reference for parameterizing
+  one shader module over many data-driven variants instead of writing one
+  module per variant.
 - **Lists and navigation** — a scrolling `Explore` catalog and a `Saved`
   favorites list share one screen implementation (`src/screens/list_screen.rs`),
   filtered live by a search field and category chips; tapping a card pushes a
@@ -98,14 +113,16 @@ cargo install cargo-ndk
 Then, from `android/`:
 
 ```bash
-./gradlew :app:assembleDebug     # x86_64, for the classic Android Studio emulator
-./gradlew :app:assembleRelease   # arm64-v8a + x86_64, for Apple Silicon emulators and real devices
-./gradlew installDebug           # or installRelease, to also install it
+./gradlew :app:assembleDebug                    # x86_64 debug, for the classic Android Studio emulator
+./gradlew :app:assembleDebug -PorbitAbi=arm64-v8a  # arm64 debug, for Apple Silicon emulators and real devices
+./gradlew :app:assembleRelease                  # arm64-v8a + x86_64 release
+./gradlew installDebug                          # or installRelease, to also install it
 ```
 
-Apple Silicon Macs run arm64 system images by default (Android Studio's
-Pixel emulators included), so `assembleDebug`'s x86_64-only output will not
-install there — use `assembleRelease` or `installRelease` instead.
+Debug builds default to `x86_64` for the classic emulator; pass
+`-PorbitAbi=arm64-v8a` (or `-PorbitAbi=arm64-v8a,x86_64`) for an
+Apple-Silicon emulator or a real device. Debug is the fast edit/deploy loop —
+prefer it over `assembleRelease` while iterating.
 
 ## Running on desktop
 
@@ -113,19 +130,38 @@ install there — use `assembleRelease` or `installRelease` instead.
 cargo run --features desktop,renderer-wgpu,logging
 ```
 
+## Running on the web
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack
+./build-web.sh
+cd dist && python3 -m http.server 8080
+# open http://localhost:8080
+```
+
+`build-web.sh` always builds `--release`; there is no dev/fast mode. The page
+prefers WebGPU where the browser has it and falls back to WebGL2 everywhere
+else — append `?backend=webgpu` or `?backend=gl` to the URL to force one path
+for testing. Every push to `main` rebuilds and redeploys the live demo linked
+at the top of this file via `.github/workflows/pages.yml`.
+
 ## Project layout
 
 ```text
 cranpose-orbit/
 ├── src/
 │   ├── app.rs             # Theme, navigation state, tab bar, transitions
-│   ├── model.rs            # The 14-body catalog (facts, colors, cross-links)
+│   ├── model.rs            # The 14-body catalog (facts, colors, shader params)
 │   ├── motion.rs            # The shared ambient animation bundle
 │   ├── screens/             # Explore/Saved list screen, detail screen
-│   ├── widgets/              # Procedural planet sphere, starfield
+│   ├── widgets/              # The planet runtime shader, starfield
 │   ├── lib.rs, main.rs, ios_main.rs   # Android/web, desktop, iOS entry points
+├── robot-runners/           # Headless visual QA via Cranpose's Robot driver
 ├── android/                 # Gradle host; the Cranpose plugin configures it
 ├── ios/                     # build-app.sh / run-sim.sh — no Xcode project
+├── index.html, build-web.sh # Web entry point and wasm build script
+├── .github/workflows/       # Pages deploy: builds and ships the live demo
 ├── Cargo.toml               # Published-crate dependencies only
 └── docs/                    # README screenshots
 ```

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cranpose Orbit</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #05060c;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #e9edf5;
+    }
+
+    .stage {
+      position: relative;
+      width: min(96vw, 430px);
+      height: min(94vh, 932px);
+      border-radius: 28px;
+      overflow: hidden;
+      background: radial-gradient(120% 120% at 30% 15%, #171b2c 0%, #05060c 65%);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .status {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+      padding: 24px;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .status .title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #e9edf5;
+    }
+
+    .status .subtitle {
+      font-size: 0.85rem;
+      color: #9aa3bd;
+      max-width: 320px;
+    }
+
+    .status.error .subtitle {
+      color: #ff8a8a;
+    }
+
+    .status.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid rgba(233, 237, 245, 0.18);
+      border-top-color: #8e7cff;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .links {
+      margin-top: 14px;
+      font-size: 0.8rem;
+    }
+
+    .links a {
+      color: #9aa3bd;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <canvas id="cranpose-orbit-canvas"></canvas>
+    <div id="status" class="status">
+      <div class="spinner"></div>
+      <div class="title">Loading Cranpose Orbit&hellip;</div>
+      <div class="subtitle">Fetching the WebAssembly bundle and starting the renderer.</div>
+    </div>
+  </div>
+  <div class="links">
+    <a href="https://github.com/samoylenkodmitry/cranpose-orbit" target="_blank" rel="noopener">Source on GitHub</a>
+  </div>
+
+  <script type="module">
+    const statusEl = document.getElementById("status");
+    const subtitleEl = statusEl.querySelector(".subtitle");
+
+    function setStatus(title, subtitle, isError = false) {
+      statusEl.classList.toggle("error", isError);
+      statusEl.querySelector(".title").textContent = title;
+      subtitleEl.textContent = subtitle;
+    }
+
+    function hideStatus() {
+      statusEl.classList.add("hidden");
+    }
+
+    async function main() {
+      const hasWebGpu = typeof navigator !== "undefined" && "gpu" in navigator;
+      const probe = document.createElement("canvas");
+      const hasWebGl2 = !!probe.getContext("webgl2");
+      if (!hasWebGpu && !hasWebGl2) {
+        throw new Error("Neither WebGPU nor WebGL2 is available in this browser.");
+      }
+
+      const wasm = await import("./pkg/cranpose_orbit.js");
+      await wasm.default();
+      setStatus("Starting Cranpose Orbit…", "Initializing the render surface.");
+      await wasm.run_app();
+      hideStatus();
+    }
+
+    main().catch((error) => {
+      console.error(error);
+      setStatus("Cranpose Orbit failed to start", String(error && error.message ? error.message : error), true);
+    });
+  </script>
+</body>
+</html>

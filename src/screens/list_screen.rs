@@ -123,7 +123,7 @@ fn BodyCard(
     index: usize,
     body: &'static CelestialBody,
     favorite: bool,
-    sheen: f32,
+    ambient: AmbientMotion,
     on_toggle_favorite: impl Fn() + 'static,
     on_open: impl Fn() + 'static,
 ) {
@@ -166,7 +166,7 @@ fn BodyCard(
                             height: 60.0,
                         }),
                         body,
-                        sheen,
+                        ambient,
                     );
                     Box(Modifier::empty().width(14.0), BoxSpec::default(), || {});
                     Column(
@@ -401,7 +401,7 @@ pub fn ListScreen(
                             };
                             let on_open = on_open.clone();
                             let opener = move || on_open(body_index);
-                            BodyCard(order, body, is_favorite, ambient.sheen, toggle, opener);
+                            BodyCard(order, body, is_favorite, ambient, toggle, opener);
                         }
                     }
                 },
