@@ -34,9 +34,6 @@ fn primary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
     })
 }
 
-/// The Liquid Glass material shared by every panel on the detail screen: a
-/// rounded-rect frost that reads calmly against the starfield without
-/// competing with the header's own regular-glass band.
 fn panel_glass(colors: LiquidColors, radius: f32) -> Glass {
     Glass::regular()
         .shape(LiquidShape::RoundedRect(radius))
