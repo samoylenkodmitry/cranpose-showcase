@@ -149,4 +149,4 @@ Cranpose itself is pre-alpha and under active development:
 
 ## License
 
-Apache-2.0, see [LICENSE-APACHE](LICENSE-APACHE).
+Apache-2.0, see [LICENSE](LICENSE).
