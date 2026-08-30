@@ -161,7 +161,7 @@ cranpose-orbit/
 ├── android/                 # Gradle host; the Cranpose plugin configures it
 ├── ios/                     # build-app.sh / run-sim.sh — no Xcode project
 ├── index.html, build-web.sh # Web entry point and wasm build script
-├── .github/workflows/       # Pages deploy: builds and ships the live demo
+├── .github/workflows/       # Pages deploy on push to main; tag-triggered releases
 ├── Cargo.toml               # Published-crate dependencies only
 └── docs/                    # README screenshots
 ```
