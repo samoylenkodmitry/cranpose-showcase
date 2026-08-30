@@ -304,7 +304,7 @@ pub fn ListScreen(
     favorites: MutableState<Vec<bool>>,
     ambient: AmbientMotion,
     on_open: impl Fn(usize) + 'static,
-) -> f32 {
+) {
     let on_open: Rc<dyn Fn(usize)> = Rc::new(on_open);
     let scroll = rememberKeyed(tab, |_| ScrollState::new(0.0));
     let category: MutableState<usize> = rememberKeyed(tab, |_| mutableStateOf(0usize));
@@ -419,6 +419,4 @@ pub fn ListScreen(
             );
         },
     );
-
-    scroll.value()
 }
