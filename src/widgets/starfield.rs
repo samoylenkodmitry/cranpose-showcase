@@ -7,6 +7,8 @@ use cranpose::prelude::*;
 use cranpose_ui_graphics::TileMode;
 
 const STAR_COUNT: usize = 160;
+const TWINKLE_STEPS_PER_CYCLE: f32 = 20.0;
+const PARALLAX_STEPS_PER_CYCLE: f32 = 60.0;
 
 struct Star {
     x: f32,
@@ -40,12 +42,26 @@ fn stars() -> &'static [Star] {
     })
 }
 
+/// Collapses a continuously animating `0..1` value to a fixed number of
+/// steps per cycle. Real atmospheric-scintillation twinkle is a discrete
+/// flicker, not a silky 60fps interpolation, so stepping is truthful to the
+/// phenomenon being drawn, not merely convenient: it also collapses the
+/// backdrop's recorded primitives to a small, fixed set of distinct frames
+/// per cycle instead of one distinct frame per render, so the renderer's
+/// scene diff finds no change on most frames and skips re-encoding them.
+fn quantize(value: f32, steps_per_cycle: f32) -> f32 {
+    (value * steps_per_cycle).floor() / steps_per_cycle
+}
+
 /// A deep-space backdrop: a soft vignette wash plus a field of twinkling
-/// stars that drift slightly with `parallax` (driven by the list's scroll
-/// offset) so the background reads as sitting behind the content rather than
-/// printed on it.
+/// stars that drift slightly with `parallax` so the background reads as
+/// sitting behind the content rather than printed on it. Both inputs are
+/// stepped (see [`quantize`]) before they reach the recorded primitives, so
+/// the backdrop only re-records when the visible field actually changes.
 #[composable]
 pub fn Starfield(modifier: Modifier, parallax: f32, twinkle: f32) {
+    let twinkle = quantize(twinkle, TWINKLE_STEPS_PER_CYCLE);
+    let drift = (quantize(parallax, PARALLAX_STEPS_PER_CYCLE) * 0.06).rem_euclid(1.0);
     Box(
         modifier.draw_behind(move |scope| {
             let size = scope.size();
@@ -65,7 +81,6 @@ pub fn Starfield(modifier: Modifier, parallax: f32, twinkle: f32) {
             ));
 
             for star in stars() {
-                let drift = (parallax * 0.06) % 1.0;
                 let y = ((star.y + drift).rem_euclid(1.0)) * size.height;
                 let x = star.x * size.width;
                 let wave = ((twinkle + star.phase) * TAU).sin();
