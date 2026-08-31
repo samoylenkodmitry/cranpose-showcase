@@ -5,9 +5,9 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>CranposeOrbit</string>
+    <string>CranposeShowcase</string>
     <key>CFBundleIdentifier</key>
-    <string>io.cranpose.orbit</string>
+    <string>io.cranpose.showcase</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleIconFiles</key>
@@ -15,15 +15,15 @@
         <string>AppIcon.png</string>
     </array>
     <key>CFBundleName</key>
-    <string>Cranpose Orbit</string>
+    <string>Showcase Cranpose</string>
     <key>CFBundleDisplayName</key>
-    <string>Orbit</string>
+    <string>Showcase Cranpose</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.1</string>
+    <string>0.1.2</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>102</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>MinimumOSVersion</key>

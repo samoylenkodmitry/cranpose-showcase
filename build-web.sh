@@ -10,17 +10,28 @@ else
   exit 1
 fi
 
-rm -rf pkg dist
+BUILD_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/cranpose-showcase-web.XXXXXX")"
+PKG_STAGE="$BUILD_ROOT/pkg"
+DIST_STAGE="$BUILD_ROOT/dist"
 
 "$WASM_PACK" build \
   --target web \
   --release \
+  --out-dir "$PKG_STAGE" \
   --no-default-features \
   --features web,renderer-wgpu
 
-mkdir -p dist
-cp index.html dist/index.html
-cp assets/app-icon.png dist/app-icon.png
-cp -R pkg dist/pkg
+mkdir -p "$DIST_STAGE"
+cp index.html "$DIST_STAGE/index.html"
+cp assets/app-icon.png "$DIST_STAGE/app-icon.png"
+cp -R "$PKG_STAGE" "$DIST_STAGE/pkg"
+
+for output in pkg dist; do
+  if [[ -e "$output" ]]; then
+    mv "$output" "${output}.previous-$(date +%s)"
+  fi
+done
+mv "$PKG_STAGE" pkg
+mv "$DIST_STAGE" dist
 
 echo "WASM demo written to dist/index.html"

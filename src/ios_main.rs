@@ -17,13 +17,13 @@ mod widgets;
 fn main() {
     use cranpose::AppLauncher;
 
-    if let Err(error) = AppLauncher::new().try_run(app::OrbitApp) {
-        eprintln!("Failed to launch Cranpose Orbit: {error}");
+    if let Err(error) = AppLauncher::new().try_run(app::ShowcaseApp) {
+        eprintln!("Failed to launch Showcase Cranpose: {error}");
         std::process::exit(1);
     }
 }
 
-// The `cranpose-orbit-ios` binary only runs on iOS. The `ios` feature can
+// The `cranpose-showcase-ios` binary only runs on iOS. The `ios` feature can
 // still be enabled on other targets (for example `cargo ... --all-features`
 // checks), where this binary has no entry point to call.
 #[cfg(not(target_os = "ios"))]

@@ -1,11 +1,11 @@
-# Cranpose Orbit
+# Showcase Cranpose
 
-**Try it live: <https://samoylenkodmitry.github.io/cranpose-orbit/>**
+**Try it live: <https://samoylenkodmitry.github.io/cranpose-showcase/>**
 
 An interactive star-chart you can browse, favorite, and poke at — built to
 show what [Cranpose](https://github.com/samoylenkodmitry/cranpose), a
 Jetpack-Compose-style declarative UI framework for Rust, looks like as a real
-app rather than a widget gallery. Orbit runs from one Rust codebase on iOS,
+app rather than a widget gallery. Showcase Cranpose runs from one Rust codebase on iOS,
 Android, desktop, and the web, using only the published `cranpose` crates
 from crates.io — nothing in this repository points at a local Cranpose
 checkout.
@@ -26,7 +26,7 @@ checkout.
 Cranpose's own `cranpose-liquid` crate is a from-scratch reimplementation of
 iOS 26's "Liquid Glass" material — real refraction, spring-driven motion, a
 fixed blurred-gradient crown, a floating pill tab
-bar. That is the most striking thing the framework can show off, so Orbit is
+bar. That is the most striking thing the framework can show off, so Showcase Cranpose is
 built almost entirely out of it: `GlassSurface`, `LiquidTabBar`, `LiquidChip`,
 `LiquidSlider`, `GlassIconButton`. A star chart gives that
 material something worth sitting on top of — vivid per-planet color, a short
@@ -94,7 +94,7 @@ SIMULATOR_DEVICE="iPhone 17 Pro" ./ios/run-sim.sh
 ```
 
 `ios/build-app.sh` assembles the `.app` bundle directly from the
-`cranpose-orbit-ios` binary — Cranpose's iOS backend is a winit `UIView`
+`cranpose-showcase-ios` binary — Cranpose's iOS backend is a winit `UIView`
 backed by `CAMetalLayer`, so there is no Xcode project and no
 Objective-C entry point to maintain.
 
@@ -113,13 +113,13 @@ Then, from `android/`:
 
 ```bash
 ./gradlew :app:assembleDebug                    # x86_64 debug, for the classic Android Studio emulator
-./gradlew :app:assembleDebug -PorbitAbi=arm64-v8a  # arm64 debug, for Apple Silicon emulators and real devices
+./gradlew :app:assembleDebug -PshowcaseAbi=arm64-v8a  # arm64 debug, for Apple Silicon emulators and real devices
 ./gradlew :app:assembleRelease                  # arm64-v8a + x86_64 release
 ./gradlew installDebug                          # or installRelease, to also install it
 ```
 
 Debug builds default to `x86_64` for the classic emulator; pass
-`-PorbitAbi=arm64-v8a` (or `-PorbitAbi=arm64-v8a,x86_64`) for an
+`-PshowcaseAbi=arm64-v8a` (or `-PshowcaseAbi=arm64-v8a,x86_64`) for an
 Apple-Silicon emulator or a real device. Debug is the fast edit/deploy loop —
 prefer it over `assembleRelease` while iterating.
 
@@ -148,7 +148,7 @@ at the top of this file via `.github/workflows/pages.yml`.
 ## Project layout
 
 ```text
-cranpose-orbit/
+cranpose-showcase/
 ├── src/
 │   ├── app.rs             # Theme, navigation state, tab bar, transitions
 │   ├── model.rs            # The 14-body catalog (facts, colors, shader params)
@@ -160,7 +160,7 @@ cranpose-orbit/
 ├── android/                 # Gradle host; the Cranpose plugin configures it
 ├── ios/                     # build-app.sh / run-sim.sh — no Xcode project
 ├── index.html, build-web.sh # Web entry point and wasm build script
-├── .github/workflows/       # Pages deploy: builds and ships the live demo
+├── .github/workflows/       # Tag releases and Pages deployments
 ├── Cargo.toml               # Published-crate dependencies only
 └── docs/                    # README screenshots
 ```
@@ -171,13 +171,7 @@ package and Android `applicationId`/iOS bundle identifier, and replace
 
 ## About Cranpose
 
-This app is pinned to `cranpose = "0.1.104"`, the version on crates.io at the
-time of writing. Cranpose's iOS backend recently gained measured
-UIScrollView-accurate fling physics, rubber-banding, and bounce — the release
-carrying that work had not shipped to crates.io yet when this repository was
-built, so the scroll feel you see here is the previous physics model, not
-that improvement. Bumping the `cranpose`/`cranpose-*` versions once that
-release lands is the one upgrade this starter is already waiting on.
+This app tracks the published Cranpose crates specified in `Cargo.toml`.
 
 Cranpose itself is pre-alpha and under active development:
 <https://github.com/samoylenkodmitry/cranpose>.

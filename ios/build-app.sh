@@ -1,9 +1,9 @@
 #!/bin/bash
-# Builds Cranpose Orbit and assembles a `.app` bundle.
+# Builds Showcase Cranpose and assembles a `.app` bundle.
 #
 # The iOS backend is winit-based (`winit-uikit`), so winit starts
 # `UIApplicationMain` itself: the app is a pure-Rust binary
-# (`cranpose-orbit-ios`) with no Objective-C entry point and no Xcode project.
+# (`cranpose-showcase-ios`) with no Objective-C entry point and no Xcode project.
 #
 # Usage:
 #   ./build-app.sh [target]
@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE="$(cd "$SCRIPT_DIR/.." && pwd)"
 TARGET="${1:-aarch64-apple-ios-sim}"
 PROFILE="${PROFILE:-debug}"
-APP_NAME="CranposeOrbit"
+APP_NAME="CranposeShowcase"
 
 case "$PROFILE" in
   release) PROFILE_FLAG="--release" ;;
@@ -27,17 +27,17 @@ esac
 
 # shellcheck disable=SC2086
 cargo build --manifest-path "$WORKSPACE/Cargo.toml" \
-  --bin cranpose-orbit-ios \
+  --bin cranpose-showcase-ios \
   --target "$TARGET" --no-default-features --features ios $PROFILE_FLAG >&2
 
-BIN="$WORKSPACE/target/$TARGET/$PROFILE/cranpose-orbit-ios"
+BIN="$WORKSPACE/target/$TARGET/$PROFILE/cranpose-showcase-ios"
 APP="$WORKSPACE/target/$TARGET/$PROFILE/$APP_NAME.app"
 
 rm -rf "$APP"
 mkdir -p "$APP"
 cp "$BIN" "$APP/$APP_NAME"
-cp "$SCRIPT_DIR/CranposeOrbit/Info.plist" "$APP/Info.plist"
-cp "$SCRIPT_DIR/CranposeOrbit/AppIcon.png" "$APP/AppIcon.png"
+cp "$SCRIPT_DIR/CranposeShowcase/Info.plist" "$APP/Info.plist"
+cp "$SCRIPT_DIR/CranposeShowcase/AppIcon.png" "$APP/AppIcon.png"
 
 # Ad-hoc sign so the bundle runs on device/simulator without a developer team.
 # Pass CODESIGN_IDENTITY for a real Developer ID / distribution identity.

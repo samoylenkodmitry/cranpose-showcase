@@ -1,6 +1,6 @@
 //! Headless visual QA for the real app screens.
 //!
-//! Renders the actual production `OrbitApp` composable (not an isolated
+//! Renders the actual production `ShowcaseApp` composable (not an isolated
 //! test bed) through Cranpose's `Robot` driver, so shader integration is
 //! checked against the real Liquid Glass cards, fixed gradient crown, and scroll
 //! behavior it ships inside. Needs no visible window and no OS
@@ -84,5 +84,5 @@ fn main() {
 
             let _ = robot.exit();
         })
-        .run(app::OrbitApp);
+        .run(app::ShowcaseApp);
 }

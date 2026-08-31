@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/png" href="app-icon.png" />
-  <title>Cranpose Orbit</title>
+  <title>Showcase Cranpose</title>
   <style>
     :root {
       color-scheme: dark;
@@ -108,15 +108,15 @@
 </head>
 <body>
   <div class="stage">
-    <canvas id="cranpose-orbit-canvas"></canvas>
+    <canvas id="cranpose-showcase-canvas"></canvas>
     <div id="status" class="status">
       <div class="spinner"></div>
-      <div class="title">Loading Cranpose Orbit&hellip;</div>
+      <div class="title">Loading Showcase Cranpose&hellip;</div>
       <div class="subtitle">Fetching the WebAssembly bundle and starting the renderer.</div>
     </div>
   </div>
   <div class="links">
-    <a href="https://github.com/samoylenkodmitry/cranpose-orbit" target="_blank" rel="noopener">Source on GitHub</a>
+    <a href="https://github.com/samoylenkodmitry/cranpose-showcase" target="_blank" rel="noopener">Source on GitHub</a>
   </div>
 
   <script type="module">
@@ -141,16 +141,16 @@
         throw new Error("Neither WebGPU nor WebGL2 is available in this browser.");
       }
 
-      const wasm = await import("./pkg/cranpose_orbit.js");
+      const wasm = await import("./pkg/cranpose_showcase.js");
       await wasm.default();
-      setStatus("Starting Cranpose Orbit…", "Initializing the render surface.");
+      setStatus("Starting Showcase Cranpose…", "Initializing the render surface.");
       await wasm.run_app();
       hideStatus();
     }
 
     main().catch((error) => {
       console.error(error);
-      setStatus("Cranpose Orbit failed to start", String(error && error.message ? error.message : error), true);
+      setStatus("Showcase Cranpose failed to start", String(error && error.message ? error.message : error), true);
     });
   </script>
 </body>

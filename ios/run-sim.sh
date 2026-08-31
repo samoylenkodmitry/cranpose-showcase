@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds, installs and launches Cranpose Orbit on a booted simulator.
+# Builds, installs and launches Showcase Cranpose on a booted simulator.
 #
 # Usage:
 #   ./run-sim.sh
@@ -8,7 +8,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEVICE="${SIMULATOR_DEVICE:-iPhone 17 Pro}"
-BUNDLE_ID="io.cranpose.orbit"
+BUNDLE_ID="io.cranpose.showcase"
 
 APP="$("$SCRIPT_DIR/build-app.sh" aarch64-apple-ios-sim)"
 

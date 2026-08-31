@@ -837,28 +837,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cranpose-orbit"
-version = "0.1.1"
-dependencies = [
- "console_error_panic_hook",
- "cranpose",
- "cranpose-animation",
- "cranpose-core",
- "cranpose-foundation",
- "cranpose-ui",
- "cranpose-ui-graphics",
- "env_logger",
- "getrandom 0.3.4",
- "image",
- "js-sys",
- "log",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-logger",
- "web-sys",
-]
-
-[[package]]
 name = "cranpose-platform-android"
 version = "0.1.111"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -974,6 +952,28 @@ dependencies = [
  "web-sys",
  "web-time",
  "webbrowser",
+]
+
+[[package]]
+name = "cranpose-showcase"
+version = "0.1.2"
+dependencies = [
+ "console_error_panic_hook",
+ "cranpose",
+ "cranpose-animation",
+ "cranpose-core",
+ "cranpose-foundation",
+ "cranpose-ui",
+ "cranpose-ui-graphics",
+ "env_logger",
+ "getrandom 0.3.4",
+ "image",
+ "js-sys",
+ "log",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-logger",
+ "web-sys",
 ]
 
 [[package]]

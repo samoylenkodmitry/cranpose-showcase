@@ -31,5 +31,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Cranpose Orbit"
+rootProject.name = "Showcase Cranpose"
 include(":app")

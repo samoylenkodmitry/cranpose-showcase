@@ -14,7 +14,7 @@ use crate::screens::list_screen::{ListScreen, Tab};
 #[cfg(not(target_os = "ios"))]
 pub fn create_app() -> AppLauncher {
     AppLauncher::new()
-        .with_title("Cranpose Orbit")
+        .with_title("Showcase Cranpose")
         .with_size(412, 915)
         .with_fps_counter(false)
 }
@@ -28,7 +28,7 @@ enum Route {
 /// Root composable: the Liquid theme, pinned dark so the same star-chart
 /// mood renders identically regardless of the platform's system appearance.
 #[composable]
-pub fn OrbitApp() {
+pub fn ShowcaseApp() {
     LiquidTheme(
         LiquidThemeSpec {
             scheme: SchemeMode::Dark,
@@ -47,7 +47,7 @@ fn RootShell() {
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
     let detail_index = rememberMutableStateOf(|| 0usize);
 
-    let infinite = rememberInfiniteTransition("orbit-ambient");
+    let infinite = rememberInfiniteTransition("showcase-ambient");
     let sheen = infinite
         .animateFloat(
             0.0,

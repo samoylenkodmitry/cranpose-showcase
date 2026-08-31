@@ -13,7 +13,7 @@ mod widgets;
 
 cranpose::android_main! {
     launcher: app::create_app(),
-    content: app::OrbitApp,
+    content: app::ShowcaseApp,
 }
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
@@ -30,6 +30,6 @@ pub fn web_init() {
 #[wasm_bindgen]
 pub async fn run_app() -> Result<(), JsValue> {
     app::create_app()
-        .run_web("cranpose-orbit-canvas", app::OrbitApp)
+        .run_web("cranpose-showcase-canvas", app::ShowcaseApp)
         .await
 }

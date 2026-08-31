@@ -1,10 +1,10 @@
 [package]
-name = "cranpose-orbit"
-version = "0.1.1"
+name = "cranpose-showcase"
+version = "0.1.2"
 edition = "2021"
-description = "An interactive star-chart browser showcasing the Cranpose UI framework"
+description = "A cross-platform showcase of the Cranpose UI framework"
 license = "Apache-2.0"
-repository = "https://github.com/samoylenkodmitry/cranpose-orbit"
+repository = "https://github.com/samoylenkodmitry/cranpose-showcase"
 publish = false
 
 [package.metadata.wasm-pack.profile.release]
@@ -15,12 +15,12 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 path = "src/lib.rs"
 
 [[bin]]
-name = "cranpose-orbit"
+name = "cranpose-showcase"
 path = "src/main.rs"
 required-features = ["desktop"]
 
 [[bin]]
-name = "cranpose-orbit-ios"
+name = "cranpose-showcase-ios"
 path = "src/ios_main.rs"
 required-features = ["ios"]
 
