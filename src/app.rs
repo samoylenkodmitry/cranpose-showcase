@@ -45,13 +45,7 @@ fn RootShell() {
     let tab = rememberMutableStateOf(|| Tab::Explore);
     let route = rememberMutableStateOf(|| Route::List);
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
-    let last_detail = rememberMutableStateOf(|| 0usize);
-
-    if let Route::Detail(index) = route.get() {
-        if last_detail.get() != index {
-            last_detail.set(index);
-        }
-    }
+    let detail_index = rememberMutableStateOf(|| 0usize);
 
     let infinite = rememberInfiniteTransition("orbit-ambient");
     let sheen = infinite
@@ -113,7 +107,11 @@ fn RootShell() {
                 move || {
                     let current_tab = tab.get();
                     let route_for_open = route;
-                    let on_open = move |index| route_for_open.set(Route::Detail(index));
+                    let detail_for_open = detail_index;
+                    let on_open = move |index| {
+                        detail_for_open.set(index);
+                        route_for_open.set(Route::Detail(index));
+                    };
                     ListScreen(current_tab, favorites, ambient, on_open);
 
                     let tab_bar_progress = animateFloatAsState(
@@ -166,9 +164,10 @@ fn RootShell() {
                     ));
                     let route_for_back = route;
                     let favorites_for_detail = favorites;
-                    let route_for_toggle = route;
+                    let route_for_related = route;
+                    let detail_for_related = detail_index;
                     AnimatedVisibility(showing_detail, enter, exit, move || {
-                        let index = last_detail.get();
+                        let index = detail_index.get();
                         let is_favorite = favorites_for_detail
                             .get()
                             .get(index)
@@ -182,8 +181,10 @@ fn RootShell() {
                             }
                             favorites_for_detail.set(current);
                         };
-                        let on_open_related =
-                            move |target| route_for_toggle.set(Route::Detail(target));
+                        let on_open_related = move |target| {
+                            detail_for_related.set(target);
+                            route_for_related.set(Route::Detail(target));
+                        };
                         DetailScreen(
                             index,
                             is_favorite,
