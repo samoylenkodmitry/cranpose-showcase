@@ -95,8 +95,12 @@ jobs:
       - name: Install Android NDK
         shell: bash
         run: |
-          sdkmanager --install "ndk;28.2.13676358"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:?Android SDK is unavailable}}"
+          sdkmanager="$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)"
+          test -n "$sdkmanager" || { echo "Android sdkmanager is unavailable" >&2; exit 1; }
+          yes | "$sdkmanager" --licenses >/dev/null
+          "$sdkmanager" --install "ndk;28.2.13676358"
+          echo "ANDROID_NDK_HOME=$sdk_root/ndk/28.2.13676358" >> "$GITHUB_ENV"
       - name: Build Android release APK
         working-directory: android
         run: ./gradlew --no-daemon :app:assembleRelease
