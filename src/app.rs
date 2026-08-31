@@ -2,6 +2,7 @@
 
 use cranpose::liquid::prelude::*;
 use cranpose::prelude::*;
+use cranpose::BackHandler;
 use cranpose_animation::prelude::*;
 
 use crate::model::BODIES;
@@ -44,6 +45,7 @@ fn RootShell() {
     let tab = rememberMutableStateOf(|| Tab::Explore);
     let route = rememberMutableStateOf(|| Route::List);
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
+    let system_bars = local_safe_area_insets().current();
 
     let infinite = rememberInfiniteTransition("showcase-ambient");
     let sheen = infinite
@@ -91,6 +93,11 @@ fn RootShell() {
     let showing_detail = matches!(route.get(), Route::Detail(_));
     let favorite_count = favorites.get().iter().filter(|&&favorite| favorite).count();
 
+    let route_for_system_back = route;
+    BackHandler(showing_detail, move || {
+        route_for_system_back.set(Route::List)
+    });
+
     Box(
         Modifier::empty().fill_max_size(),
         BoxSpec::default(),
@@ -112,6 +119,12 @@ fn RootShell() {
                     Box(
                         Modifier::empty()
                             .fill_max_width()
+                            .padding_each(
+                                system_bars.left,
+                                0.0,
+                                system_bars.right,
+                                system_bars.bottom + 12.0,
+                            )
                             .align(Alignment::new(
                                 HorizontalAlignment::CenterHorizontally,
                                 VerticalAlignment::Bottom,

@@ -2,19 +2,18 @@
 
 **Live demo:** <https://samoylenkodmitry.github.io/cranpose-showcase/>
 
-Showcase Cranpose is a cross-platform star chart built with
-[Cranpose](https://github.com/samoylenkodmitry/cranpose), a declarative,
-Jetpack-Compose-style UI framework for Rust. One Rust codebase ships to
-desktop, Android, iOS, and the web.
+Showcase Cranpose is a liquid-glass 3D star chart built with
+[Cranpose](https://github.com/samoylenkodmitry/cranpose). One Rust codebase
+ships to desktop, Android, iOS, and the web.
 
 <table>
 <tr>
-<td align="center"><b>Explore</b></td>
-<td align="center"><b>World detail</b></td>
+<td align="center"><b>iOS</b></td>
+<td align="center"><b>Android</b></td>
 </tr>
 <tr>
-<td><img src="docs/screenshot-explore.png" width="360"></td>
-<td><img src="docs/screenshot-detail.png" width="360"></td>
+<td><img src="docs/screenshot-ios.png" width="360"></td>
+<td><img src="docs/screenshot-android.png" width="360"></td>
 </tr>
 </table>
 

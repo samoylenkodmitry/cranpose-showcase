@@ -290,6 +290,7 @@ pub fn DetailScreen(
     let on_open_related: Rc<dyn Fn(usize)> = Rc::new(on_open_related);
     let body = &BODIES[body_index];
     let scroll = rememberKeyed(body_index, |_| ScrollState::new(0.0));
+    let system_bars = local_safe_area_insets().current();
 
     Box(
         Modifier::empty().fill_max_size(),
@@ -322,9 +323,12 @@ pub fn DetailScreen(
             HeaderBlurGradient();
 
             Row(
-                Modifier::empty()
-                    .fill_max_width()
-                    .padding_each(16.0, 18.0, 16.0, 0.0),
+                Modifier::empty().fill_max_width().padding_each(
+                    system_bars.left + 16.0,
+                    system_bars.top + 12.0,
+                    system_bars.right + 16.0,
+                    0.0,
+                ),
                 RowSpec::default()
                     .horizontal_arrangement(LinearArrangement::SpaceBetween)
                     .vertical_alignment(VerticalAlignment::CenterVertically),

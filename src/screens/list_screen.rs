@@ -35,6 +35,7 @@ const CATEGORIES: &[(&str, Option<BodyKind>)] = &[
     ("Star", Some(BodyKind::Star)),
     ("Exoplanet", Some(BodyKind::Exoplanet)),
 ];
+const CONTENT_MARGIN: f32 = 20.0;
 
 fn kind_color(colors: LiquidColors, kind: BodyKind) -> Color {
     match kind {
@@ -158,7 +159,6 @@ fn BodyCard(
     GlassSurface(
         Modifier::empty()
             .fill_max_width()
-            .padding_each(20.0, 0.0, 20.0, 0.0)
             .graphics_layer_block(move |layer| {
                 layer.alpha = progress;
                 layer.translation_y = (1.0 - progress) * 28.0;
@@ -362,7 +362,12 @@ pub fn ListScreen(
                 let favorite_flags = favorite_flags.clone();
                 let on_open = on_open.clone();
                 LazyColumn(
-                    Modifier::empty().fill_max_size(),
+                    Modifier::empty().fill_max_size().padding_each(
+                        CONTENT_MARGIN,
+                        0.0,
+                        CONTENT_MARGIN,
+                        0.0,
+                    ),
                     list_state,
                     LazyColumnSpec::default()
                         .content_padding(100.0, 128.0)
@@ -370,9 +375,7 @@ pub fn ListScreen(
                     move |scope| {
                         scope.item(move || {
                             SearchField(
-                                Modifier::empty()
-                                    .fill_max_width()
-                                    .padding_each(20.0, 0.0, 20.0, 0.0),
+                                Modifier::empty().fill_max_width(),
                                 search,
                                 "Search the sky",
                             );
@@ -380,8 +383,7 @@ pub fn ListScreen(
                             Row(
                                 Modifier::empty()
                                     .fill_max_width()
-                                    .horizontal_scroll(chip_scroll, false)
-                                    .padding_each(20.0, 0.0, 20.0, 0.0),
+                                    .horizontal_scroll(chip_scroll, false),
                                 RowSpec::default()
                                     .horizontal_arrangement(LinearArrangement::spaced_by(8.0)),
                                 move || {

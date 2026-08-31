@@ -8,7 +8,8 @@ use cranpose_ui_graphics::TileMode;
 
 const STAR_COUNT: usize = 160;
 const TWINKLE_STEPS_PER_CYCLE: f32 = 20.0;
-const PARALLAX_STEPS_PER_SCREEN: f32 = 16.0;
+const PARALLAX_PITCH_PER_SCREEN: f32 = 0.11;
+const PARALLAX_YAW_PER_SCREEN: f32 = 0.16;
 const FAVORITES_FOR_FULL_STELLAR_RESPONSE: f32 = 6.0;
 
 struct Star {
@@ -57,8 +58,11 @@ fn quantize(value: f32, steps_per_cycle: f32) -> f32 {
 }
 
 fn parallax_rotation(scroll_offset: f32) -> (f32, f32) {
-    let stepped = (scroll_offset / 48.0).floor() / PARALLAX_STEPS_PER_SCREEN;
-    (stepped * 0.035, stepped * 0.060)
+    let screens = scroll_offset / 720.0;
+    (
+        screens * PARALLAX_PITCH_PER_SCREEN,
+        screens * PARALLAX_YAW_PER_SCREEN,
+    )
 }
 
 fn favorite_stellar_response(favorite_count: usize) -> f32 {
@@ -70,8 +74,9 @@ fn star_alpha(base_alpha: f32, wave: f32, favorite_count: usize) -> f32 {
     (base_alpha + wave * (0.22 + response * 0.12) + response * 0.24).clamp(0.04, 1.0)
 }
 
-/// A deep-space backdrop that moves slower than foreground scrolling, making
-/// the stars read as distant rather than printed behind the content.
+/// A deep-space backdrop projected from a 3D field. The field makes one slow,
+/// clockwise orbit while foreground scroll applies its pitch and yaw, so stars
+/// move with perspective instead of translating as a flat texture.
 #[composable]
 pub fn Starfield(
     modifier: Modifier,
@@ -139,6 +144,8 @@ mod tests {
     fn parallax_moves_in_response_to_scrolling() {
         assert_eq!(parallax_rotation(0.0), (0.0, 0.0));
         assert_ne!(parallax_rotation(96.0), (0.0, 0.0));
+        assert!(parallax_rotation(720.0).0 > parallax_rotation(96.0).0);
+        assert!(parallax_rotation(720.0).1 > parallax_rotation(96.0).1);
     }
 
     #[test]
