@@ -1,6 +1,6 @@
 [package]
 name = "cranpose-orbit"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "An interactive star-chart browser showcasing the Cranpose UI framework"
 license = "Apache-2.0"
@@ -50,12 +50,12 @@ logging = ["dep:env_logger"]
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-cranpose = { version = "0.1.106" }
-cranpose-core = "0.1.106"
-cranpose-animation = "0.1.106"
-cranpose-foundation = "0.1.106"
-cranpose-ui = "0.1.106"
-cranpose-ui-graphics = "0.1.106"
+cranpose = { version = "0.1.111" }
+cranpose-core = "0.1.111"
+cranpose-animation = "0.1.111"
+cranpose-foundation = "0.1.111"
+cranpose-ui = "0.1.111"
+cranpose-ui-graphics = "0.1.111"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
