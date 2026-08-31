@@ -82,17 +82,21 @@ jobs:
   android:
     name: Android APK
     needs: create-release
-    runs-on: [self-hosted, samarch1]
-    env:
-      ANDROID_HOME: /home/s/develop/sdk
-      ANDROID_SDK_ROOT: /home/s/develop/sdk
-      ANDROID_NDK_HOME: /home/s/develop/sdk/ndk/28.2.13676358
-      JAVA_HOME: /usr/lib/jvm/java-21-openjdk
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android NDK
+        shell: bash
+        run: |
+          sdkmanager --install "ndk;28.2.13676358"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
       - name: Build Android release APK
         working-directory: android
         run: ./gradlew --no-daemon :app:assembleRelease
