@@ -321,6 +321,7 @@ pub fn ListScreen(
         let search = remember(|| TextFieldState::new("")).with(|state| *state);
         let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
         let favorite_flags = favorites.get();
+        let favorite_count = favorite_flags.iter().filter(|&&favorite| favorite).count();
         let query = search.text().trim().to_lowercase();
         let selected_category = category.get().min(CATEGORIES.len() - 1);
         let visible: Vec<usize> = BODIES
@@ -351,6 +352,7 @@ pub fn ListScreen(
                     Modifier::empty().fill_max_size(),
                     parallax_scroll,
                     ambient.twinkle,
+                    favorite_count,
                 );
                 let colors = liquid_colors();
                 let visible_keys = visible.clone();

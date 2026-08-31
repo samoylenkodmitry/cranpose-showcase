@@ -9,6 +9,7 @@ use cranpose_ui_graphics::TileMode;
 const STAR_COUNT: usize = 160;
 const TWINKLE_STEPS_PER_CYCLE: f32 = 20.0;
 const PARALLAX_STEPS_PER_SCREEN: f32 = 16.0;
+const FAVORITES_FOR_FULL_STELLAR_RESPONSE: f32 = 6.0;
 
 struct Star {
     x: f32,
@@ -58,10 +59,19 @@ fn parallax_offset(scroll_offset: f32) -> (f32, f32) {
     (stepped * 9.0, stepped * 15.0)
 }
 
+fn favorite_stellar_response(favorite_count: usize) -> f32 {
+    (favorite_count as f32 / FAVORITES_FOR_FULL_STELLAR_RESPONSE).clamp(0.0, 1.0)
+}
+
+fn star_alpha(base_alpha: f32, wave: f32, favorite_count: usize) -> f32 {
+    let response = favorite_stellar_response(favorite_count);
+    (base_alpha + wave * (0.22 + response * 0.12) + response * 0.24).clamp(0.04, 1.0)
+}
+
 /// A deep-space backdrop that moves slower than foreground scrolling, making
 /// the stars read as distant rather than printed behind the content.
 #[composable]
-pub fn Starfield(modifier: Modifier, scroll_offset: f32, twinkle: f32) {
+pub fn Starfield(modifier: Modifier, scroll_offset: f32, twinkle: f32, favorite_count: usize) {
     let twinkle = quantize(twinkle, TWINKLE_STEPS_PER_CYCLE);
     let (offset_x, offset_y) = parallax_offset(scroll_offset);
     Box(
@@ -86,7 +96,7 @@ pub fn Starfield(modifier: Modifier, scroll_offset: f32, twinkle: f32) {
                 let y = (star.y * size.height + offset_y).rem_euclid(size.height);
                 let x = (star.x * size.width + offset_x).rem_euclid(size.width);
                 let wave = ((twinkle + star.phase) * TAU).sin();
-                let alpha = (star.base_alpha + wave * 0.22).clamp(0.04, 1.0);
+                let alpha = star_alpha(star.base_alpha, wave, favorite_count);
                 scope.draw_circle(
                     Brush::solid(Color::from_rgba_u8(255, 255, 255, (alpha * 255.0) as u8)),
                     Point { x, y },
@@ -101,11 +111,17 @@ pub fn Starfield(modifier: Modifier, scroll_offset: f32, twinkle: f32) {
 
 #[cfg(test)]
 mod tests {
-    use super::parallax_offset;
+    use super::{parallax_offset, star_alpha};
 
     #[test]
     fn parallax_moves_in_response_to_scrolling() {
         assert_eq!(parallax_offset(0.0), (0.0, 0.0));
         assert_ne!(parallax_offset(96.0), (0.0, 0.0));
+    }
+
+    #[test]
+    fn favorites_brighten_the_starfield() {
+        assert!(star_alpha(0.45, 0.0, 1) > star_alpha(0.45, 0.0, 0));
+        assert!(star_alpha(0.45, 0.0, 6) > star_alpha(0.45, 0.0, 1));
     }
 }

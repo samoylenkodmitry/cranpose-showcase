@@ -279,6 +279,7 @@ fn RelatedRow(
 pub fn DetailScreen(
     body_index: usize,
     favorite: bool,
+    favorite_count: usize,
     ambient: AmbientMotion,
     on_back: impl Fn() + 'static,
     on_toggle_favorite: impl Fn() + 'static,
@@ -298,6 +299,7 @@ pub fn DetailScreen(
                 Modifier::empty().fill_max_size(),
                 scroll.value(),
                 ambient.twinkle,
+                favorite_count,
             );
             let on_toggle_favorite = on_toggle_favorite.clone();
             let on_open_related = on_open_related.clone();

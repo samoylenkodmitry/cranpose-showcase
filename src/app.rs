@@ -90,6 +90,7 @@ fn RootShell() {
     };
 
     let showing_detail = matches!(route.get(), Route::Detail(_));
+    let favorite_count = favorites.get().iter().filter(|&&favorite| favorite).count();
 
     Box(
         Modifier::empty().fill_max_size(),
@@ -175,6 +176,7 @@ fn RootShell() {
                             DetailScreen(
                                 index,
                                 is_favorite,
+                                favorite_count,
                                 ambient,
                                 on_back,
                                 on_toggle_favorite,
