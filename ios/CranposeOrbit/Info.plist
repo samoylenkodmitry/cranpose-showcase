@@ -10,6 +10,10 @@
     <string>io.cranpose.orbit</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+    <key>CFBundleIconFiles</key>
+    <array>
+        <string>AppIcon.png</string>
+    </array>
     <key>CFBundleName</key>
     <string>Cranpose Orbit</string>
     <key>CFBundleDisplayName</key>

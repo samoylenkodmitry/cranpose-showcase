@@ -25,18 +25,18 @@ checkout.
 
 Cranpose's own `cranpose-liquid` crate is a from-scratch reimplementation of
 iOS 26's "Liquid Glass" material — real refraction, spring-driven motion, a
-large-title nav bar that collapses under a frosted band, a floating pill tab
+fixed blurred-gradient crown, a floating pill tab
 bar. That is the most striking thing the framework can show off, so Orbit is
-built almost entirely out of it: `LiquidNavBar`, `LiquidTabBar`, `LiquidCard`,
-`LiquidChip`, `LiquidSlider`, `GlassIconButton`. A star chart gives that
+built almost entirely out of it: `GlassSurface`, `LiquidTabBar`, `LiquidChip`,
+`LiquidSlider`, `GlassIconButton`. A star chart gives that
 material something worth sitting on top of — vivid per-planet color, a short
 factual hook for every world, and enough real content (fourteen bodies, five
 categories, cross-references between them) to need actual navigation and
 state instead of a static screen.
 
 Every planet, moon, and star you see is drawn, not loaded: `PlanetSphere`
-(`src/widgets/planet.rs`) is one runtime WGSL shader, applied through
-`Modifier::shader_background`, shared by all fourteen bodies. Each pixel does
+(`src/widgets/planet.rs`) is one runtime WGSL shader, applied as a composited
+render effect, shared by all fourteen bodies. Each pixel does
 a real analytic ray-sphere intersection and Lambert/specular lighting off a
 sun-direction uniform, so every world has an actual day/night terminator
 instead of a baked highlight — procedural fbm terrain for rocky bodies,
@@ -49,9 +49,9 @@ placed, twinkling points. Nothing here is an image asset.
 
 ## What it demonstrates
 
-- **A real GPU shader as the hero content, not a decoration** —
-  `Modifier::shader_background(RuntimeShader)` lets a composable's entire
-  visual come from a hand-written WGSL fragment shader instead of drawn
+- **A real GPU shader as the hero content, not a decoration** — a composited
+  `RuntimeShader` lets a composable's entire visual come from a hand-written
+  WGSL fragment shader instead of drawn
   vector shapes; `src/widgets/planet.rs` is the reference for parameterizing
   one shader module over many data-driven variants instead of writing one
   module per variant.
@@ -64,10 +64,9 @@ placed, twinkling points. Nothing here is an image asset.
   and settles with `spring(Spring::DampingRatioHighBouncy, ...)`; the detail
   screen enters and exits with a combined fade + slide transition; the
   floating tab bar's own liquid indicator comes from `LiquidTabBar` for free.
-- **A large-title nav bar that actually collapses** — `LiquidNavBar` reads the
-  content's live scroll offset and snaps to fully expanded or fully collapsed,
-  exactly like `UINavigationBar`, sampling the scrolling content through its
-  frosted band.
+- **Scroll-driven stellar depth** — the star field shifts more slowly than
+  foreground scrolling, so content has visible parallax without moving the
+  glass surfaces.
 - **Real interaction, not just display** — a "feel the gravity" slider on
   every detail page rescales a sample weight live by that body's surface
   gravity; a staggered entrance animation brings list cards in one after

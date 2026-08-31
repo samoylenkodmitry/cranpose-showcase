@@ -20,6 +20,7 @@ rm -rf pkg dist
 
 mkdir -p dist
 cp index.html dist/index.html
+cp assets/app-icon.png dist/app-icon.png
 cp -R pkg dist/pkg
 
 echo "WASM demo written to dist/index.html"

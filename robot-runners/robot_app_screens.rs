@@ -2,7 +2,7 @@
 //!
 //! Renders the actual production `OrbitApp` composable (not an isolated
 //! test bed) through Cranpose's `Robot` driver, so shader integration is
-//! checked against the real Liquid Glass cards, nav bar, and scroll
+//! checked against the real Liquid Glass cards, fixed gradient crown, and scroll
 //! behavior it ships inside. Needs no visible window and no OS
 //! screen-recording permission.
 //!
@@ -63,7 +63,7 @@ fn main() {
             let _ = robot.pump_frames(4);
             let _ = robot.drag(200.0, 700.0, 200.0, 500.0);
             let _ = robot.pump_frames(8);
-            save(&robot, &out_dir, "app-explore-header-collapsed.png");
+            save(&robot, &out_dir, "app-explore-scrolled.png");
             let _ = robot.drag(200.0, 300.0, 200.0, 900.0);
             let _ = robot.pump_frames(4);
             let _ = robot.drag(200.0, 300.0, 200.0, 900.0);

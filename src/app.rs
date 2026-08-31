@@ -8,7 +8,6 @@ use crate::model::BODIES;
 use crate::motion::AmbientMotion;
 use crate::screens::detail_screen::DetailScreen;
 use crate::screens::list_screen::{ListScreen, Tab};
-use crate::widgets::starfield::Starfield;
 
 /// Builds the launcher used by every target except iOS, whose window is
 /// owned and sized by UIKit instead.
@@ -103,8 +102,6 @@ fn RootShell() {
         Modifier::empty().fill_max_size(),
         BoxSpec::default(),
         move || {
-            Starfield(Modifier::empty().fill_max_size(), drift, twinkle);
-
             Box(
                 Modifier::empty().fill_max_size().padding_each(
                     insets.left,

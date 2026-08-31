@@ -37,6 +37,7 @@ rm -rf "$APP"
 mkdir -p "$APP"
 cp "$BIN" "$APP/$APP_NAME"
 cp "$SCRIPT_DIR/CranposeOrbit/Info.plist" "$APP/Info.plist"
+cp "$SCRIPT_DIR/CranposeOrbit/AppIcon.png" "$APP/AppIcon.png"
 
 # Ad-hoc sign so the bundle runs on device/simulator without a developer team.
 # Pass CODESIGN_IDENTITY for a real Developer ID / distribution identity.
