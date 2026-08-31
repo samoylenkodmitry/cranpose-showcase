@@ -351,6 +351,7 @@ pub fn ListScreen(
                 Starfield(
                     Modifier::empty().fill_max_size(),
                     parallax_scroll,
+                    ambient.drift,
                     ambient.twinkle,
                     favorite_count,
                 );

@@ -298,6 +298,7 @@ pub fn DetailScreen(
             Starfield(
                 Modifier::empty().fill_max_size(),
                 scroll.value(),
+                ambient.drift,
                 ambient.twinkle,
                 favorite_count,
             );

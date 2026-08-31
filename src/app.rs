@@ -41,7 +41,6 @@ pub fn ShowcaseApp() {
 
 #[composable]
 fn RootShell() {
-    let insets = local_safe_area_insets().current();
     let tab = rememberMutableStateOf(|| Tab::Explore);
     let route = rememberMutableStateOf(|| Route::List);
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
@@ -97,12 +96,7 @@ fn RootShell() {
         BoxSpec::default(),
         move || {
             Box(
-                Modifier::empty().fill_max_size().padding_each(
-                    insets.left,
-                    insets.top,
-                    insets.right,
-                    insets.bottom,
-                ),
+                Modifier::empty().fill_max_size(),
                 BoxSpec::default(),
                 move || {
                     let current_tab = tab.get();
