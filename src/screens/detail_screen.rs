@@ -299,7 +299,6 @@ pub fn DetailScreen(
                 scroll.value(),
                 ambient.twinkle,
             );
-            HeaderBlurGradient();
             let on_toggle_favorite = on_toggle_favorite.clone();
             let on_open_related = on_open_related.clone();
             Column(
@@ -317,6 +316,7 @@ pub fn DetailScreen(
                     RelatedRow(body, ambient, move |target| on_open_related(target));
                 },
             );
+            HeaderBlurGradient();
 
             Row(
                 Modifier::empty()

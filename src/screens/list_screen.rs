@@ -81,16 +81,18 @@ pub(crate) fn FavoriteButton(favorite: bool, on_toggle: impl Fn() + 'static) {
     let colors = liquid_colors();
     let previous = rememberMutableStateOf(|| favorite);
     let pulse = rememberMutableStateOf(|| 1.0f32);
-    let scope = rememberCoroutineScope();
-
-    if previous.get() != favorite {
-        previous.set(favorite);
-        pulse.set(1.45);
-        scope.launch(async move {
-            delay(Duration::from_millis(90)).await;
-            pulse.set(1.0);
-        });
-    }
+    LaunchedEffect(favorite, move |scope| {
+        if previous.get() != favorite {
+            previous.set(favorite);
+            pulse.set(1.45);
+            scope.launch_background(
+                move |_cancel| async move { delay(Duration::from_millis(90)).await },
+                move |_| {
+                    pulse.set(1.0);
+                },
+            );
+        }
+    });
 
     let scale = animateFloatAsState(
         pulse.get(),
@@ -131,13 +133,15 @@ fn BodyCard(
     on_open: impl Fn() + 'static,
 ) {
     let on_toggle_favorite: Rc<dyn Fn()> = Rc::new(on_toggle_favorite);
-    let scope = rememberCoroutineScope();
     let appeared = rememberMutableStateOf(|| false);
-    remember(|| {
-        scope.launch(async move {
-            delay(Duration::from_millis(35 * (index.min(14)) as u64)).await;
-            appeared.set(true);
-        });
+    LaunchedEffect((body.name, index), move |scope| {
+        appeared.set(false);
+        scope.launch_background(
+            move |_cancel| async move {
+                delay(Duration::from_millis(35 * (index.min(14)) as u64)).await
+            },
+            move |_| appeared.set(true),
+        );
     });
 
     let progress = animateFloatAsState(
@@ -321,7 +325,6 @@ pub fn ListScreen(
                 scroll.value(),
                 ambient.twinkle,
             );
-            HeaderBlurGradient();
             let colors = liquid_colors();
             let on_open = on_open.clone();
             Column(
@@ -409,6 +412,7 @@ pub fn ListScreen(
                     }
                 },
             );
+            HeaderBlurGradient();
         },
     );
 }
