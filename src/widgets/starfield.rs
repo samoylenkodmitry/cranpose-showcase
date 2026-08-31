@@ -8,7 +8,7 @@ use cranpose_ui_graphics::TileMode;
 
 const STAR_COUNT: usize = 160;
 const TWINKLE_STEPS_PER_CYCLE: f32 = 20.0;
-const PARALLAX_STEPS_PER_CYCLE: f32 = 60.0;
+const PARALLAX_STEPS_PER_SCREEN: f32 = 16.0;
 
 struct Star {
     x: f32,
@@ -53,15 +53,17 @@ fn quantize(value: f32, steps_per_cycle: f32) -> f32 {
     (value * steps_per_cycle).floor() / steps_per_cycle
 }
 
-/// A deep-space backdrop: a soft vignette wash plus a field of twinkling
-/// stars that drift slightly with `parallax` so the background reads as
-/// sitting behind the content rather than printed on it. Both inputs are
-/// stepped (see [`quantize`]) before they reach the recorded primitives, so
-/// the backdrop only re-records when the visible field actually changes.
+fn parallax_offset(scroll_offset: f32) -> (f32, f32) {
+    let stepped = (scroll_offset / 48.0).floor() / PARALLAX_STEPS_PER_SCREEN;
+    (stepped * 9.0, stepped * 15.0)
+}
+
+/// A deep-space backdrop that moves slower than foreground scrolling, making
+/// the stars read as distant rather than printed behind the content.
 #[composable]
-pub fn Starfield(modifier: Modifier, parallax: f32, twinkle: f32) {
+pub fn Starfield(modifier: Modifier, scroll_offset: f32, twinkle: f32) {
     let twinkle = quantize(twinkle, TWINKLE_STEPS_PER_CYCLE);
-    let drift = (quantize(parallax, PARALLAX_STEPS_PER_CYCLE) * 0.06).rem_euclid(1.0);
+    let (offset_x, offset_y) = parallax_offset(scroll_offset);
     Box(
         modifier.draw_behind(move |scope| {
             let size = scope.size();
@@ -81,8 +83,8 @@ pub fn Starfield(modifier: Modifier, parallax: f32, twinkle: f32) {
             ));
 
             for star in stars() {
-                let y = ((star.y + drift).rem_euclid(1.0)) * size.height;
-                let x = star.x * size.width;
+                let y = (star.y * size.height + offset_y).rem_euclid(size.height);
+                let x = (star.x * size.width + offset_x).rem_euclid(size.width);
                 let wave = ((twinkle + star.phase) * TAU).sin();
                 let alpha = (star.base_alpha + wave * 0.22).clamp(0.04, 1.0);
                 scope.draw_circle(
@@ -95,4 +97,15 @@ pub fn Starfield(modifier: Modifier, parallax: f32, twinkle: f32) {
         BoxSpec::default(),
         || {},
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parallax_offset;
+
+    #[test]
+    fn parallax_moves_in_response_to_scrolling() {
+        assert_eq!(parallax_offset(0.0), (0.0, 0.0));
+        assert_ne!(parallax_offset(96.0), (0.0, 0.0));
+    }
 }

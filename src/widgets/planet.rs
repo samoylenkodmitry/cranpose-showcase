@@ -386,7 +386,9 @@ pub fn PlanetSphere(modifier: Modifier, body: &'static CelestialBody, ambient: A
     let sun_dir = sun_direction(ambient.sheen);
     let shader = build_shader(body, rotation_phase, cloud_phase, sun_dir);
     Box(
-        modifier.shader_background(shader),
+        modifier.graphics_layer_block(move |layer| {
+            layer.render_effect = Some(RenderEffect::runtime_shader(shader.clone()));
+        }),
         BoxSpec::default(),
         || {},
     );

@@ -10,9 +10,10 @@ use cranpose_ui::text::{FontWeight, TextUnit};
 use crate::model::{CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
 use crate::screens::list_screen::FavoriteButton;
-use crate::widgets::header_glass::HeaderBlurRamp;
+use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
 use crate::widgets::starfield::Starfield;
+use crate::widgets::surfaces::showcase_glass;
 
 fn secondary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
     base.merge(&TextStyle {
@@ -32,13 +33,6 @@ fn primary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
         },
         ..Default::default()
     })
-}
-
-fn panel_glass(colors: LiquidColors, radius: f32) -> Glass {
-    Glass::regular()
-        .shape(LiquidShape::RoundedRect(radius))
-        .blur_radius(18.0)
-        .adaptive_frost(colors.label, 0.45)
 }
 
 #[composable]
@@ -72,7 +66,7 @@ fn StatTile(label: &'static str, value: &'static str) {
     let colors = liquid_colors();
     GlassSurface(
         Modifier::empty().weight(1.0).padding(14.0),
-        panel_glass(colors, 16.0),
+        showcase_glass(colors, 16.0),
         move || {
             Column(
                 Modifier::empty().fill_max_width(),
@@ -165,7 +159,7 @@ fn GravityPlayground(body: &'static CelestialBody) {
             let here = weight * body.gravity_g;
             GlassSurface(
                 Modifier::empty().fill_max_width().padding(16.0),
-                panel_glass(colors, 18.0),
+                showcase_glass(colors, 18.0),
                 move || {
                     Column(
                         Modifier::empty().fill_max_width(),
@@ -302,16 +296,17 @@ pub fn DetailScreen(
         move || {
             Starfield(
                 Modifier::empty().fill_max_size(),
-                ambient.drift,
+                scroll.value(),
                 ambient.twinkle,
             );
+            HeaderBlurGradient();
             let on_toggle_favorite = on_toggle_favorite.clone();
             let on_open_related = on_open_related.clone();
             Column(
                 Modifier::empty()
                     .fill_max_size()
                     .vertical_scroll(scroll, false)
-                    .padding_each(0.0, liquid_nav_bar_expanded_height() + 6.0, 0.0, 48.0),
+                    .padding_each(0.0, 88.0, 0.0, 48.0),
                 ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(22.0)),
                 move || {
                     let on_open_related = on_open_related.clone();
@@ -323,28 +318,25 @@ pub fn DetailScreen(
                 },
             );
 
-            let nav_spec = LiquidNavBarSpec::new(body.name);
-            HeaderBlurRamp(nav_spec.collapse_range);
-            LiquidNavBar(
-                Modifier::empty().fill_max_width(),
-                nav_spec,
-                scroll,
+            Row(
+                Modifier::empty()
+                    .fill_max_width()
+                    .padding_each(16.0, 18.0, 16.0, 0.0),
+                RowSpec::default()
+                    .horizontal_arrangement(LinearArrangement::SpaceBetween)
+                    .vertical_alignment(VerticalAlignment::CenterVertically),
                 {
                     let on_back = on_back.clone();
+                    let on_toggle_favorite = on_toggle_favorite.clone();
                     move || {
-                        let on_back = on_back.clone();
+                        let back = on_back.clone();
                         GlassIconButton(
                             Modifier::empty(),
                             GlassButtonSpec::glass(),
-                            36.0,
-                            move || on_back(),
+                            40.0,
+                            move || back(),
                             icons::CHEVRON_LEFT,
                         );
-                    }
-                },
-                {
-                    let on_toggle_favorite = on_toggle_favorite.clone();
-                    move || {
                         let toggle = on_toggle_favorite.clone();
                         FavoriteButton(favorite, move || toggle());
                     }

@@ -13,8 +13,10 @@ use cranpose_ui_graphics::Stroke;
 
 use crate::model::{BodyKind, CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
-use crate::widgets::header_glass::HeaderBlurRamp;
+use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
+use crate::widgets::starfield::Starfield;
+use crate::widgets::surfaces::showcase_glass;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tab {
@@ -146,7 +148,7 @@ fn BodyCard(
     .value();
 
     let opener = on_open;
-    LiquidCard(
+    GlassSurface(
         Modifier::empty()
             .fill_max_width()
             .graphics_layer_block(move |layer| {
@@ -154,6 +156,7 @@ fn BodyCard(
                 layer.translation_y = (1.0 - progress) * 28.0;
             })
             .clickable(move |_point| opener()),
+        showcase_glass(liquid_colors(), 20.0),
         move || {
             let colors = liquid_colors();
             let on_toggle_favorite = on_toggle_favorite.clone();
@@ -295,9 +298,7 @@ fn EmptySavedState() {
     );
 }
 
-/// The main scrolling screen: search, category chips, and the list of
-/// bodies, topped by a large-title nav bar that collapses as the content
-/// scrolls beneath it.
+/// The main scrolling screen: search, category chips, and the list of bodies.
 #[composable]
 pub fn ListScreen(
     tab: Tab,
@@ -311,22 +312,23 @@ pub fn ListScreen(
     let search = remember(|| TextFieldState::new("")).with(|state| *state);
     let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
 
-    let title = match tab {
-        Tab::Explore => "Explore",
-        Tab::Saved => "Saved",
-    };
-
     Box(
         Modifier::empty().fill_max_size(),
         BoxSpec::default(),
         move || {
+            Starfield(
+                Modifier::empty().fill_max_size(),
+                scroll.value(),
+                ambient.twinkle,
+            );
+            HeaderBlurGradient();
             let colors = liquid_colors();
             let on_open = on_open.clone();
             Column(
                 Modifier::empty()
                     .fill_max_size()
                     .vertical_scroll(scroll, false)
-                    .padding_each(20.0, liquid_nav_bar_expanded_height() + 10.0, 20.0, 128.0),
+                    .padding_each(20.0, 100.0, 20.0, 128.0),
                 ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(14.0)),
                 move || {
                     let favorite_flags = favorites.get();
@@ -406,16 +408,6 @@ pub fn ListScreen(
                         }
                     }
                 },
-            );
-
-            let nav_spec = LiquidNavBarSpec::new(title);
-            HeaderBlurRamp(nav_spec.collapse_range);
-            LiquidNavBar(
-                Modifier::empty().fill_max_width(),
-                nav_spec,
-                scroll,
-                || {},
-                || {},
             );
         },
     );
