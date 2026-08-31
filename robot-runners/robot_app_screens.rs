@@ -9,7 +9,7 @@
 //! Run with:
 //! `cargo run --bin robot-app-screens --features robot-preview`
 //!
-//! `ORBIT_ROBOT_OUT_DIR` picks the output directory (default `/tmp`).
+//! `SHOWCASE_ROBOT_OUT_DIR` picks the output directory (default `/tmp`).
 
 #[path = "../src/app.rs"]
 mod app;
@@ -37,8 +37,8 @@ fn save(robot: &Robot, out_dir: &str, name: &str) {
 
 fn main() {
     let _ = env_logger::try_init();
-    let out_dir = std::env::var("ORBIT_ROBOT_OUT_DIR").unwrap_or_else(|_| "/tmp".to_string());
-    let headless = std::env::var("ORBIT_ROBOT_HEADLESS").as_deref() != Ok("0");
+    let out_dir = std::env::var("SHOWCASE_ROBOT_OUT_DIR").unwrap_or_else(|_| "/tmp".to_string());
+    let headless = std::env::var("SHOWCASE_ROBOT_HEADLESS").as_deref() != Ok("0");
 
     app::create_app()
         .with_headless(headless)

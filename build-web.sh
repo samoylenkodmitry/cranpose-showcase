@@ -28,7 +28,7 @@ cp -R "$PKG_STAGE" "$DIST_STAGE/pkg"
 
 for output in pkg dist; do
   if [[ -e "$output" ]]; then
-    mv "$output" "${output}.previous-$(date +%s)"
+    mv "$output" "$BUILD_ROOT/$output.previous"
   fi
 done
 mv "$PKG_STAGE" pkg

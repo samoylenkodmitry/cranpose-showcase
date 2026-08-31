@@ -45,7 +45,6 @@ fn RootShell() {
     let tab = rememberMutableStateOf(|| Tab::Explore);
     let route = rememberMutableStateOf(|| Route::List);
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
-    let detail_index = rememberMutableStateOf(|| 0usize);
 
     let infinite = rememberInfiniteTransition("showcase-ambient");
     let sheen = infinite
@@ -106,12 +105,7 @@ fn RootShell() {
                 BoxSpec::default(),
                 move || {
                     let current_tab = tab.get();
-                    let route_for_open = route;
-                    let detail_for_open = detail_index;
-                    let on_open = move |index| {
-                        detail_for_open.set(index);
-                        route_for_open.set(Route::Detail(index));
-                    };
+                    let on_open = move |index| route.set(Route::Detail(index));
                     ListScreen(current_tab, favorites, ambient, on_open);
 
                     let tab_bar_progress = animateFloatAsState(
@@ -154,46 +148,40 @@ fn RootShell() {
                         },
                     );
 
-                    let enter = (fade_in() + slide_in_vertically(0.05)).with_animation(spring(
-                        Spring::DampingRatioLowBouncy,
-                        Spring::StiffnessMediumLow,
-                    ));
-                    let exit = (fade_out() + slide_out_vertically(0.04)).with_animation(spring(
-                        Spring::DampingRatioNoBouncy,
-                        Spring::StiffnessMedium,
-                    ));
-                    let route_for_back = route;
+                    let route_for_detail = route;
                     let favorites_for_detail = favorites;
-                    let route_for_related = route;
-                    let detail_for_related = detail_index;
-                    AnimatedVisibility(showing_detail, enter, exit, move || {
-                        let index = detail_index.get();
-                        let is_favorite = favorites_for_detail
-                            .get()
-                            .get(index)
-                            .copied()
-                            .unwrap_or(false);
-                        let on_back = move || route_for_back.set(Route::List);
-                        let on_toggle_favorite = move || {
-                            let mut current = favorites_for_detail.get();
-                            if let Some(flag) = current.get_mut(index) {
-                                *flag = !*flag;
-                            }
-                            favorites_for_detail.set(current);
-                        };
-                        let on_open_related = move |target| {
-                            detail_for_related.set(target);
-                            route_for_related.set(Route::Detail(target));
-                        };
-                        DetailScreen(
-                            index,
-                            is_favorite,
-                            ambient,
-                            on_back,
-                            on_toggle_favorite,
-                            on_open_related,
-                        );
-                    });
+                    Crossfade(
+                        route.get(),
+                        tween(260, Easing::EaseOut),
+                        move |destination| {
+                            let Route::Detail(index) = destination else {
+                                return;
+                            };
+                            let is_favorite = favorites_for_detail
+                                .get()
+                                .get(index)
+                                .copied()
+                                .unwrap_or(false);
+                            let on_back = move || route_for_detail.set(Route::List);
+                            let on_toggle_favorite = move || {
+                                let mut current = favorites_for_detail.get();
+                                if let Some(flag) = current.get_mut(index) {
+                                    *flag = !*flag;
+                                }
+                                favorites_for_detail.set(current);
+                            };
+                            let on_open_related =
+                                move |target| route_for_detail.set(Route::Detail(target));
+                            DetailScreen(
+                                index,
+                                is_favorite,
+                                ambient,
+                                on_back,
+                                on_toggle_favorite,
+                                on_open_related,
+                            );
+                        },
+                    );
                 },
             );
         },

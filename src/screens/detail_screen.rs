@@ -148,7 +148,7 @@ fn Description(body: &'static CelestialBody) {
 #[composable]
 fn GravityPlayground(body: &'static CelestialBody) {
     let colors = liquid_colors();
-    let earth_weight = rememberMutableStateOf(|| 70.0f32);
+    let earth_weight = rememberKeyed(body.name, |_| mutableStateOf(70.0f32));
     Box(
         Modifier::empty()
             .fill_max_width()
@@ -231,7 +231,7 @@ fn RelatedRow(
     }
     let on_open: Rc<dyn Fn(usize)> = Rc::new(on_open);
     let colors = liquid_colors();
-    let scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
+    let scroll = rememberKeyed(body.name, |_| ScrollState::new(0.0));
     let related = body.related;
     Column(
         Modifier::empty().fill_max_width(),

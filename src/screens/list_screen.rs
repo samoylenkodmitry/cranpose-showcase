@@ -6,8 +6,11 @@ use std::time::Duration;
 use cranpose::liquid::prelude::*;
 use cranpose::prelude::*;
 use cranpose_animation::prelude::*;
-use cranpose_core::rememberKeyed;
-use cranpose_foundation::text::TextFieldState;
+use cranpose_core::with_key;
+use cranpose_foundation::{
+    lazy::{rememberLazyListState, LazyItems, LazyListScope},
+    text::TextFieldState,
+};
 use cranpose_ui::text::{FontWeight, TextUnit};
 use cranpose_ui_graphics::Stroke;
 
@@ -18,7 +21,7 @@ use crate::widgets::planet::PlanetSphere;
 use crate::widgets::starfield::Starfield;
 use crate::widgets::surfaces::showcase_glass;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Tab {
     Explore,
     Saved,
@@ -155,6 +158,7 @@ fn BodyCard(
     GlassSurface(
         Modifier::empty()
             .fill_max_width()
+            .padding_each(20.0, 0.0, 20.0, 0.0)
             .graphics_layer_block(move |layer| {
                 layer.alpha = progress;
                 layer.translation_y = (1.0 - progress) * 28.0;
@@ -311,108 +315,142 @@ pub fn ListScreen(
     on_open: impl Fn(usize) + 'static,
 ) {
     let on_open: Rc<dyn Fn(usize)> = Rc::new(on_open);
-    let scroll = rememberKeyed(tab, |_| ScrollState::new(0.0));
-    let category: MutableState<usize> = rememberKeyed(tab, |_| mutableStateOf(0usize));
-    let search = remember(|| TextFieldState::new("")).with(|state| *state);
-    let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
+    with_key(&tab, move || {
+        let list_state = rememberLazyListState();
+        let category: MutableState<usize> = rememberMutableStateOf(|| 0usize);
+        let search = remember(|| TextFieldState::new("")).with(|state| *state);
+        let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
+        let favorite_flags = favorites.get();
+        let query = search.text().trim().to_lowercase();
+        let selected_category = category.get().min(CATEGORIES.len() - 1);
+        let visible: Vec<usize> = BODIES
+            .iter()
+            .enumerate()
+            .filter(|(index, entry)| {
+                let tab_ok = match tab {
+                    Tab::Explore => true,
+                    Tab::Saved => favorite_flags.get(*index).copied().unwrap_or(false),
+                };
+                let category_ok = match CATEGORIES[selected_category].1 {
+                    None => true,
+                    Some(kind) => entry.kind == kind,
+                };
+                let query_ok = query.is_empty() || entry.name.to_lowercase().contains(&query);
+                tab_ok && category_ok && query_ok
+            })
+            .map(|(index, _)| index)
+            .collect();
+        let parallax_scroll = list_state.first_visible_item_index() as f32 * 112.0
+            + list_state.first_visible_item_scroll_offset();
 
-    Box(
-        Modifier::empty().fill_max_size(),
-        BoxSpec::default(),
-        move || {
-            Starfield(
-                Modifier::empty().fill_max_size(),
-                scroll.value(),
-                ambient.twinkle,
-            );
-            let colors = liquid_colors();
-            let on_open = on_open.clone();
-            Column(
-                Modifier::empty()
-                    .fill_max_size()
-                    .vertical_scroll(scroll, false)
-                    .padding_each(20.0, 100.0, 20.0, 128.0),
-                ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(14.0)),
-                move || {
-                    let favorite_flags = favorites.get();
-                    let query = search.text().trim().to_lowercase();
-                    let selected_category = category.get().min(CATEGORIES.len() - 1);
-                    let visible: Vec<usize> = BODIES
-                        .iter()
-                        .enumerate()
-                        .filter(|(index, entry)| {
-                            let tab_ok = match tab {
-                                Tab::Explore => true,
-                                Tab::Saved => favorite_flags.get(*index).copied().unwrap_or(false),
-                            };
-                            let category_ok = match CATEGORIES[selected_category].1 {
-                                None => true,
-                                Some(kind) => entry.kind == kind,
-                            };
-                            let query_ok =
-                                query.is_empty() || entry.name.to_lowercase().contains(&query);
-                            tab_ok && category_ok && query_ok
-                        })
-                        .map(|(index, _)| index)
-                        .collect();
-
-                    SearchField(Modifier::empty().fill_max_width(), search, "Search the sky");
-
-                    Row(
-                        Modifier::empty()
-                            .fill_max_width()
-                            .horizontal_scroll(chip_scroll, false),
-                        RowSpec::default()
-                            .horizontal_arrangement(LinearArrangement::spaced_by(8.0)),
-                        move || {
-                            for (index, (label, _)) in CATEGORIES.iter().enumerate() {
-                                let category = category;
-                                LiquidChip(
-                                    Modifier::empty(),
-                                    selected_category == index,
-                                    move || category.set(index),
-                                    *label,
-                                );
-                            }
-                        },
-                    );
-
-                    if visible.is_empty() {
-                        if matches!(tab, Tab::Saved) && query.is_empty() && selected_category == 0 {
-                            EmptySavedState();
+        Box(
+            Modifier::empty().fill_max_size(),
+            BoxSpec::default(),
+            move || {
+                Starfield(
+                    Modifier::empty().fill_max_size(),
+                    parallax_scroll,
+                    ambient.twinkle,
+                );
+                let colors = liquid_colors();
+                let visible_keys = visible.clone();
+                let visible_bodies = visible.clone();
+                let query = query.clone();
+                let favorite_flags = favorite_flags.clone();
+                let on_open = on_open.clone();
+                LazyColumn(
+                    Modifier::empty().fill_max_size(),
+                    list_state,
+                    LazyColumnSpec::default()
+                        .content_padding(100.0, 128.0)
+                        .vertical_arrangement(LinearArrangement::spaced_by(14.0)),
+                    move |scope| {
+                        scope.item(move || {
+                            SearchField(
+                                Modifier::empty()
+                                    .fill_max_width()
+                                    .padding_each(20.0, 0.0, 20.0, 0.0),
+                                search,
+                                "Search the sky",
+                            );
+                            Box(Modifier::empty().height(8.0), BoxSpec::default(), || {});
+                            Row(
+                                Modifier::empty()
+                                    .fill_max_width()
+                                    .horizontal_scroll(chip_scroll, false)
+                                    .padding_each(20.0, 0.0, 20.0, 0.0),
+                                RowSpec::default()
+                                    .horizontal_arrangement(LinearArrangement::spaced_by(8.0)),
+                                move || {
+                                    for (index, (label, _)) in CATEGORIES.iter().enumerate() {
+                                        let category = category;
+                                        LiquidChip(
+                                            Modifier::empty(),
+                                            selected_category == index,
+                                            move || category.set(index),
+                                            *label,
+                                        );
+                                    }
+                                },
+                            );
+                        });
+                        if visible_bodies.is_empty() {
+                            scope.item(move || {
+                                if matches!(tab, Tab::Saved)
+                                    && query.is_empty()
+                                    && selected_category == 0
+                                {
+                                    EmptySavedState();
+                                } else {
+                                    Text(
+                                        "No worlds match that search.",
+                                        Modifier::empty().padding_each(24.0, 10.0, 24.0, 0.0),
+                                        liquid_typography().body.merge(&TextStyle {
+                                            span_style: SpanStyle {
+                                                color: Some(colors.secondary_label),
+                                                ..Default::default()
+                                            },
+                                            ..Default::default()
+                                        }),
+                                    );
+                                }
+                            });
                         } else {
-                            Text(
-                                "No worlds match that search.",
-                                Modifier::empty().padding_each(4.0, 24.0, 4.0, 0.0),
-                                liquid_typography().body.merge(&TextStyle {
-                                    span_style: SpanStyle {
-                                        color: Some(colors.secondary_label),
-                                        ..Default::default()
-                                    },
-                                    ..Default::default()
+                            let favorite_flags = favorite_flags.clone();
+                            scope.items(
+                                LazyItems::new(visible_bodies.len()).key(move |index| {
+                                    visible_keys.get(index).copied().unwrap_or(index) as u64
                                 }),
+                                move |order| {
+                                    let Some(&body_index) = visible_bodies.get(order) else {
+                                        return;
+                                    };
+                                    let body = &BODIES[body_index];
+                                    let is_favorite =
+                                        favorite_flags.get(body_index).copied().unwrap_or(false);
+                                    let toggle = move || {
+                                        let mut current = favorites.get();
+                                        if let Some(flag) = current.get_mut(body_index) {
+                                            *flag = !*flag;
+                                        }
+                                        favorites.set(current);
+                                    };
+                                    let on_open = on_open.clone();
+                                    BodyCard(
+                                        order,
+                                        body,
+                                        is_favorite,
+                                        ambient,
+                                        toggle,
+                                        move || on_open(body_index),
+                                    );
+                                },
                             );
                         }
-                    } else {
-                        for (order, body_index) in visible.iter().copied().enumerate() {
-                            let body = &BODIES[body_index];
-                            let is_favorite =
-                                favorite_flags.get(body_index).copied().unwrap_or(false);
-                            let toggle = move || {
-                                let mut current = favorites.get();
-                                if let Some(flag) = current.get_mut(body_index) {
-                                    *flag = !*flag;
-                                }
-                                favorites.set(current);
-                            };
-                            let on_open = on_open.clone();
-                            let opener = move || on_open(body_index);
-                            BodyCard(order, body, is_favorite, ambient, toggle, opener);
-                        }
-                    }
-                },
-            );
-            HeaderBlurGradient();
-        },
-    );
+                    },
+                );
+                HeaderBlurGradient();
+            },
+        );
+    });
 }
