@@ -1,6 +1,6 @@
 [package]
 name = "cranpose-showcase"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 description = "A cross-platform showcase of the Cranpose UI framework"
 license = "Apache-2.0"
