@@ -12,7 +12,7 @@ use crate::motion::AmbientMotion;
 use crate::screens::list_screen::FavoriteButton;
 use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
-use crate::widgets::starfield::Starfield;
+use crate::widgets::starfield::{Starfield, StarfieldScroll};
 use crate::widgets::surfaces::showcase_glass;
 
 fn secondary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
@@ -298,9 +298,8 @@ pub fn DetailScreen(
         move || {
             Starfield(
                 Modifier::empty().fill_max_size(),
-                scroll.value(),
-                ambient.drift,
-                ambient.twinkle,
+                StarfieldScroll::Scroll(scroll),
+                ambient,
                 favorite_count,
             );
             let on_toggle_favorite = on_toggle_favorite.clone();

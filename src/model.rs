@@ -586,7 +586,7 @@ pub static BODIES: &[CelestialBody] = &[
         related: &[SUN],
         body_class: BodyClass::Rocky,
         axial_tilt_deg: 0.0,
-        rotation_turns: 0.0,
+        rotation_turns: 2.0,
         cloud_turns: 0.0,
         cloud_coverage: 0.12,
         ring_inner_frac: 0.0,
