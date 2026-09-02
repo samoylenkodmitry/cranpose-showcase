@@ -3,10 +3,10 @@
 use cranpose::liquid::prelude::*;
 use cranpose::prelude::*;
 use cranpose::BackHandler;
-use cranpose_animation::prelude::*;
+use cranpose_animation::prelude::{tween, Easing};
 
 use crate::model::BODIES;
-use crate::motion::AmbientMotion;
+use crate::motion::rememberAmbientMotion;
 use crate::screens::detail_screen::DetailScreen;
 use crate::screens::list_screen::{ListScreen, Tab};
 
@@ -47,51 +47,11 @@ fn RootShell() {
     let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
     let system_bars = local_safe_area_insets().current();
 
-    let infinite = rememberInfiniteTransition("showcase-ambient");
-    let sheen = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(5200, Easing::EaseInOut),
-                RepeatMode::Reverse,
-                StartOffset::default(),
-            ),
-            "sheen",
-        )
-        .value();
-    let twinkle = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(3600, Easing::LinearEasing),
-                RepeatMode::Restart,
-                StartOffset::default(),
-            ),
-            "twinkle",
-        )
-        .value();
-    let drift = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(48_000, Easing::LinearEasing),
-                RepeatMode::Restart,
-                StartOffset::default(),
-            ),
-            "drift",
-        )
-        .value();
-    let ambient = AmbientMotion {
-        sheen,
-        drift,
-        twinkle,
-    };
-
-    let showing_detail = matches!(route.get(), Route::Detail(_));
+    let destination = route.get();
+    let showing_detail = matches!(destination, Route::Detail(_));
     let favorite_count = favorites.get().iter().filter(|&&favorite| favorite).count();
+
+    let ambient = rememberAmbientMotion(showing_detail);
 
     let route_for_system_back = route;
     BackHandler(showing_detail, move || {
@@ -102,95 +62,84 @@ fn RootShell() {
         Modifier::empty().fill_max_size(),
         BoxSpec::default(),
         move || {
-            Box(
-                Modifier::empty().fill_max_size(),
-                BoxSpec::default(),
-                move || {
-                    let current_tab = tab.get();
-                    let on_open = move |index| route.set(Route::Detail(index));
-                    ListScreen(current_tab, favorites, ambient, on_open);
-
-                    let tab_bar_progress = animateFloatAsState(
-                        if showing_detail { 0.0 } else { 1.0 },
-                        spring(Spring::DampingRatioNoBouncy, Spring::StiffnessMedium),
-                        "tab-bar-visibility",
-                    )
-                    .value();
-                    Box(
-                        Modifier::empty()
-                            .fill_max_width()
-                            .padding_each(
-                                system_bars.left,
-                                0.0,
-                                system_bars.right,
-                                system_bars.bottom + 12.0,
-                            )
-                            .align(Alignment::new(
+            let route_for_content = route;
+            let favorites_for_content = favorites;
+            Crossfade(
+                destination,
+                tween(260, Easing::EaseOut),
+                move |destination| match destination {
+                    Route::List => {
+                        let current_tab = tab.get();
+                        let on_open = move |index| route_for_content.set(Route::Detail(index));
+                        ListScreen(
+                            current_tab,
+                            favorites_for_content,
+                            favorite_count,
+                            ambient,
+                            on_open,
+                        );
+                        Box(
+                            Modifier::empty()
+                                .fill_max_width()
+                                .padding_each(
+                                    system_bars.left,
+                                    0.0,
+                                    system_bars.right,
+                                    system_bars.bottom + 12.0,
+                                )
+                                .align(Alignment::new(
+                                    HorizontalAlignment::CenterHorizontally,
+                                    VerticalAlignment::Bottom,
+                                )),
+                            BoxSpec::default().content_alignment(Alignment::new(
                                 HorizontalAlignment::CenterHorizontally,
                                 VerticalAlignment::Bottom,
-                            ))
-                            .graphics_layer_block(move |layer| {
-                                layer.alpha = tab_bar_progress;
-                                layer.translation_y = (1.0 - tab_bar_progress) * 48.0;
-                            }),
-                        BoxSpec::default().content_alignment(Alignment::new(
-                            HorizontalAlignment::CenterHorizontally,
-                            VerticalAlignment::Bottom,
-                        )),
-                        move || {
-                            LiquidTabBar(
-                                Modifier::empty(),
-                                LiquidTabBarSpec::default(),
-                                match current_tab {
-                                    Tab::Explore => 0,
-                                    Tab::Saved => 1,
-                                },
-                                move |index| {
-                                    tab.set(if index == 0 { Tab::Explore } else { Tab::Saved });
-                                },
-                                |scope| {
-                                    scope.tab(icons::ROCKET, "Explore");
-                                    scope.tab(icons::BOOKMARK, "Saved");
-                                },
-                            );
-                        },
-                    );
-
-                    let route_for_detail = route;
-                    let favorites_for_detail = favorites;
-                    Crossfade(
-                        route.get(),
-                        tween(260, Easing::EaseOut),
-                        move |destination| {
-                            let Route::Detail(index) = destination else {
-                                return;
-                            };
-                            let is_favorite = favorites_for_detail
-                                .get()
-                                .get(index)
-                                .copied()
-                                .unwrap_or(false);
-                            let on_back = move || route_for_detail.set(Route::List);
-                            let on_toggle_favorite = move || {
-                                let mut current = favorites_for_detail.get();
-                                if let Some(flag) = current.get_mut(index) {
-                                    *flag = !*flag;
-                                }
-                                favorites_for_detail.set(current);
-                            };
-                            let on_open_related =
-                                move |target| route_for_detail.set(Route::Detail(target));
-                            DetailScreen(
-                                index,
-                                is_favorite,
-                                favorite_count,
-                                ambient,
-                                on_back,
-                                on_toggle_favorite,
-                                on_open_related,
-                            );
-                        },
-                    );
+                            )),
+                            move || {
+                                LiquidTabBar(
+                                    Modifier::empty(),
+                                    LiquidTabBarSpec::default(),
+                                    match current_tab {
+                                        Tab::Explore => 0,
+                                        Tab::Saved => 1,
+                                    },
+                                    move |index| {
+                                        tab.set(if index == 0 { Tab::Explore } else { Tab::Saved });
+                                    },
+                                    |scope| {
+                                        scope.tab(icons::ROCKET, "Explore");
+                                        scope.tab(icons::BOOKMARK, "Saved");
+                                    },
+                                );
+                            },
+                        );
+                    }
+                    Route::Detail(index) => {
+                        let is_favorite = favorites_for_content
+                            .get()
+                            .get(index)
+                            .copied()
+                            .unwrap_or(false);
+                        let on_back = move || route_for_content.set(Route::List);
+                        let on_toggle_favorite = move || {
+                            let mut current = favorites_for_content.get();
+                            if let Some(flag) = current.get_mut(index) {
+                                *flag = !*flag;
+                            }
+                            favorites_for_content.set(current);
+                        };
+                        let on_open_related =
+                            move |target| route_for_content.set(Route::Detail(target));
+                        DetailScreen(
+                            index,
+                            is_favorite,
+                            favorite_count,
+                            ambient,
+                            on_back,
+                            on_toggle_favorite,
+                            on_open_related,
+                        );
+                    }
                 },
             );
         },

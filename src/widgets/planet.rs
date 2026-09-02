@@ -1,10 +1,9 @@
 #![allow(non_snake_case)]
 
 use std::f32::consts::TAU;
-use std::sync::{Arc, OnceLock};
 
 use cranpose::prelude::*;
-use cranpose_ui_graphics::RuntimeShader;
+use cranpose_ui_graphics::{GraphicsLayer, RenderEffect, RuntimeShader};
 
 use crate::model::{BodyClass, CelestialBody};
 use crate::motion::AmbientMotion;
@@ -276,11 +275,6 @@ fn effect_fs(input: VertexOutput) -> @location(0) vec4<f32> {
 }
 "#;
 
-fn planet_shader_source() -> Arc<str> {
-    static SOURCE: OnceLock<Arc<str>> = OnceLock::new();
-    SOURCE.get_or_init(|| Arc::<str>::from(PLANET_WGSL)).clone()
-}
-
 mod uniform {
     pub const ROTATION_PHASE: usize = 0;
     pub const CLOUD_PHASE: usize = 1;
@@ -337,18 +331,13 @@ fn sun_direction(sheen: f32) -> (f32, f32, f32) {
     (x / len, y / len, z / len)
 }
 
-fn build_shader(
-    body: &CelestialBody,
-    rotation_phase: f32,
-    cloud_phase: f32,
-    sun_dir: (f32, f32, f32),
-) -> RuntimeShader {
-    let mut shader = RuntimeShader::from_shared_source(planet_shader_source());
+fn build_shader_template(body: &CelestialBody) -> RuntimeShader {
+    let mut shader = RuntimeShader::new(PLANET_WGSL);
     let axial_tilt_rad = body.axial_tilt_deg.to_radians();
 
-    shader.set_float(uniform::ROTATION_PHASE, rotation_phase);
-    shader.set_float(uniform::CLOUD_PHASE, cloud_phase);
-    set_vec3(&mut shader, uniform::SUN_DIR, sun_dir);
+    shader.set_float(uniform::ROTATION_PHASE, 0.0);
+    shader.set_float(uniform::CLOUD_PHASE, 0.0);
+    set_vec3(&mut shader, uniform::SUN_DIR, sun_direction(0.0));
     shader.set_float(uniform::AXIAL_TILT, axial_tilt_rad);
     shader.set_float(uniform::BODY_CLASS, body_class_index(body.body_class));
     shader.set_float(uniform::HAS_RING, if body.has_ring { 1.0 } else { 0.0 });
@@ -371,6 +360,26 @@ fn build_shader(
     shader
 }
 
+fn build_shader(
+    template: &RuntimeShader,
+    rotation_phase: f32,
+    cloud_phase: f32,
+    sun_dir: (f32, f32, f32),
+) -> RuntimeShader {
+    let mut shader = template.clone();
+    shader.set_float(uniform::ROTATION_PHASE, rotation_phase);
+    shader.set_float(uniform::CLOUD_PHASE, cloud_phase);
+    set_vec3(&mut shader, uniform::SUN_DIR, sun_dir);
+    shader
+}
+
+fn planet_layer(shader: RuntimeShader) -> GraphicsLayer {
+    GraphicsLayer {
+        render_effect: Some(RenderEffect::runtime_shader(shader)),
+        ..Default::default()
+    }
+}
+
 /// A real 3D-shaded sphere for one celestial body: analytic ray-sphere
 /// intersection, a Lambert-plus-specular day/night terminator driven by a
 /// sun-direction uniform, procedural terrain or band noise, an optional
@@ -381,15 +390,33 @@ fn build_shader(
 /// card still reads as alive.
 #[composable]
 pub fn PlanetSphere(modifier: Modifier, body: &'static CelestialBody, ambient: AmbientMotion) {
-    let rotation_phase = ambient.drift * body.rotation_turns * TAU;
-    let cloud_phase = ambient.drift * body.cloud_turns * TAU;
-    let sun_dir = sun_direction(ambient.sheen);
-    let shader = build_shader(body, rotation_phase, cloud_phase, sun_dir);
+    let template = rememberKeyed(body.name, |_| build_shader_template(body));
     Box(
-        modifier.graphics_layer_block(move |layer| {
-            layer.render_effect = Some(RenderEffect::runtime_shader(shader.clone()));
+        modifier.graphics_layer(move || {
+            let rotation = ambient.planet_rotation();
+            let shader = build_shader(
+                &template,
+                rotation * body.rotation_turns * TAU,
+                rotation * body.cloud_turns * TAU,
+                sun_direction(ambient.sheen()),
+            );
+            planet_layer(shader)
         }),
         BoxSpec::default(),
         || {},
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{planet_layer, PLANET_WGSL};
+    use cranpose_ui_graphics::RuntimeShader;
+
+    #[test]
+    fn transparent_planet_pixels_are_not_rendered_as_a_backdrop_effect() {
+        let layer = planet_layer(RuntimeShader::new(PLANET_WGSL));
+
+        assert!(layer.render_effect.is_some());
+        assert!(layer.backdrop_effect.is_none());
+    }
 }

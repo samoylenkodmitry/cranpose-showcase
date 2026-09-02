@@ -10,8 +10,8 @@
 //! Run with:
 //! `cargo run --bin robot-planet-gallery --features robot-preview`
 //!
-//! `ORBIT_ROBOT_OUT_DIR` picks the output directory (default `/tmp`),
-//! `ORBIT_ROBOT_WAIT_MS` picks how long the animation runs before the
+//! `SHOWCASE_ROBOT_OUT_DIR` picks the output directory (default `/tmp`),
+//! `SHOWCASE_ROBOT_WAIT_MS` picks how long the animation runs before the
 //! capture (default 600ms).
 
 #![allow(non_snake_case)]
@@ -19,6 +19,7 @@
 #[path = "../src/model.rs"]
 mod model;
 #[path = "../src/motion.rs"]
+#[allow(dead_code)]
 mod motion;
 #[path = "../src/widgets/planet.rs"]
 mod planet;
@@ -28,7 +29,6 @@ use std::time::Duration;
 use cranpose::liquid::prelude::*;
 use cranpose::prelude::*;
 use cranpose::{AppLauncher, Robot};
-use cranpose_animation::prelude::*;
 use cranpose_ui::text::TextUnit;
 
 use model::{CelestialBody, BODIES};
@@ -87,36 +87,7 @@ fn PlanetTile(body: &'static CelestialBody, ambient: AmbientMotion) {
 
 #[composable]
 fn GalleryBody() {
-    let infinite = rememberInfiniteTransition("gallery-ambient");
-    let sheen = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(5200, Easing::EaseInOut),
-                RepeatMode::Reverse,
-                StartOffset::default(),
-            ),
-            "sheen",
-        )
-        .value();
-    let drift = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(48_000, Easing::LinearEasing),
-                RepeatMode::Restart,
-                StartOffset::default(),
-            ),
-            "drift",
-        )
-        .value();
-    let ambient = AmbientMotion {
-        sheen,
-        drift,
-        twinkle: 0.0,
-    };
+    let ambient = motion::rememberAmbientMotion(false);
 
     Box(
         Modifier::empty()
@@ -160,12 +131,12 @@ fn Gallery() {
 
 fn main() {
     let _ = env_logger::try_init();
-    let out_dir = std::env::var("ORBIT_ROBOT_OUT_DIR").unwrap_or_else(|_| "/tmp".to_string());
-    let wait_ms: u64 = std::env::var("ORBIT_ROBOT_WAIT_MS")
+    let out_dir = std::env::var("SHOWCASE_ROBOT_OUT_DIR").unwrap_or_else(|_| "/tmp".to_string());
+    let wait_ms: u64 = std::env::var("SHOWCASE_ROBOT_WAIT_MS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(600);
-    let headless = std::env::var("ORBIT_ROBOT_HEADLESS").as_deref() != Ok("0");
+    let headless = std::env::var("SHOWCASE_ROBOT_HEADLESS").as_deref() != Ok("0");
 
     AppLauncher::new()
         .with_title("Robot Planet Gallery")
@@ -173,17 +144,17 @@ fn main() {
         .with_headless(headless)
         .with_test_driver(move |robot: Robot| {
             std::thread::sleep(Duration::from_millis(wait_ms));
-            // The ambient sheen/drift transitions loop forever by design, so
+            // The ambient transitions loop forever by design, so
             // `wait_for_idle` would never return; pump a bounded number of
             // frames instead.
-            let _ = robot.pump_frames(6);
+            robot.pump_frames(6).expect("advance ambient animation");
             let shot = robot.screenshot().expect("screenshot");
             let path = std::path::Path::new(&out_dir).join("planet-gallery.png");
             let image = image::RgbaImage::from_raw(shot.width, shot.height, shot.pixels.clone())
                 .expect("valid screenshot buffer");
             image.save(&path).expect("save screenshot");
             println!("wrote {}", path.display());
-            let _ = robot.exit();
+            robot.exit().expect("exit robot gallery");
         })
         .run(Gallery);
 }

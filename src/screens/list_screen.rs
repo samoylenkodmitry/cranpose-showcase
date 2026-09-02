@@ -18,7 +18,7 @@ use crate::model::{BodyKind, CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
 use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
-use crate::widgets::starfield::Starfield;
+use crate::widgets::starfield::{Starfield, StarfieldScroll};
 use crate::widgets::surfaces::showcase_glass;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -129,7 +129,6 @@ pub(crate) fn FavoriteButton(favorite: bool, on_toggle: impl Fn() + 'static) {
 
 #[composable]
 fn BodyCard(
-    index: usize,
     body: &'static CelestialBody,
     favorite: bool,
     ambient: AmbientMotion,
@@ -137,32 +136,11 @@ fn BodyCard(
     on_open: impl Fn() + 'static,
 ) {
     let on_toggle_favorite: Rc<dyn Fn()> = Rc::new(on_toggle_favorite);
-    let appeared = rememberMutableStateOf(|| false);
-    LaunchedEffect((body.name, index), move |scope| {
-        appeared.set(false);
-        scope.launch_background(
-            move |_cancel| async move {
-                delay(Duration::from_millis(35 * (index.min(14)) as u64)).await
-            },
-            move |_| appeared.set(true),
-        );
-    });
-
-    let progress = animateFloatAsState(
-        if appeared.get() { 1.0 } else { 0.0 },
-        spring(Spring::DampingRatioLowBouncy, Spring::StiffnessLow),
-        "card-appear",
-    )
-    .value();
 
     let opener = on_open;
     GlassSurface(
         Modifier::empty()
             .fill_max_width()
-            .graphics_layer_block(move |layer| {
-                layer.alpha = progress;
-                layer.translation_y = (1.0 - progress) * 28.0;
-            })
             .clickable(move |_point| opener()),
         showcase_glass(liquid_colors(), 20.0),
         move || {
@@ -232,18 +210,16 @@ fn BodyCard(
 fn EmptySavedState() {
     let colors = liquid_colors();
     let infinite = rememberInfiniteTransition("empty-bob");
-    let bob = infinite
-        .animateFloat(
-            0.0,
-            1.0,
-            infiniteRepeatable(
-                AnimationSpec::tween(1800, Easing::EaseInOut),
-                RepeatMode::Reverse,
-                StartOffset::default(),
-            ),
-            "bob",
-        )
-        .value();
+    let bob = infinite.animateFloat(
+        0.0,
+        1.0,
+        infiniteRepeatable(
+            AnimationSpec::tween(1800, Easing::EaseInOut),
+            RepeatMode::Reverse,
+            StartOffset::default(),
+        ),
+        "bob",
+    );
 
     Column(
         Modifier::empty()
@@ -259,8 +235,9 @@ fn EmptySavedState() {
                         width: 96.0,
                         height: 96.0,
                     })
-                    .graphics_layer_block(move |layer| {
-                        layer.translation_y = (bob - 0.5) * 10.0;
+                    .graphics_layer(move || GraphicsLayer {
+                        translation_y: (bob.value() - 0.5) * 10.0,
+                        ..Default::default()
                     })
                     .draw_behind(move |scope| {
                         let size = scope.size();
@@ -311,6 +288,7 @@ fn EmptySavedState() {
 pub fn ListScreen(
     tab: Tab,
     favorites: MutableState<Vec<bool>>,
+    favorite_count: usize,
     ambient: AmbientMotion,
     on_open: impl Fn(usize) + 'static,
 ) {
@@ -321,7 +299,6 @@ pub fn ListScreen(
         let search = remember(|| TextFieldState::new("")).with(|state| *state);
         let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
         let favorite_flags = favorites.get();
-        let favorite_count = favorite_flags.iter().filter(|&&favorite| favorite).count();
         let query = search.text().trim().to_lowercase();
         let selected_category = category.get().min(CATEGORIES.len() - 1);
         let visible: Vec<usize> = BODIES
@@ -341,18 +318,14 @@ pub fn ListScreen(
             })
             .map(|(index, _)| index)
             .collect();
-        let parallax_scroll = list_state.first_visible_item_index() as f32 * 112.0
-            + list_state.first_visible_item_scroll_offset();
-
         Box(
             Modifier::empty().fill_max_size(),
             BoxSpec::default(),
             move || {
                 Starfield(
                     Modifier::empty().fill_max_size(),
-                    parallax_scroll,
-                    ambient.drift,
-                    ambient.twinkle,
+                    StarfieldScroll::LazyList(list_state),
+                    ambient,
                     favorite_count,
                 );
                 let colors = liquid_colors();
@@ -441,14 +414,9 @@ pub fn ListScreen(
                                         favorites.set(current);
                                     };
                                     let on_open = on_open.clone();
-                                    BodyCard(
-                                        order,
-                                        body,
-                                        is_favorite,
-                                        ambient,
-                                        toggle,
-                                        move || on_open(body_index),
-                                    );
+                                    BodyCard(body, is_favorite, ambient, toggle, move || {
+                                        on_open(body_index)
+                                    });
                                 },
                             );
                         }
