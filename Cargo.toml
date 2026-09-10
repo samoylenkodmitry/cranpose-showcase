@@ -99,3 +99,11 @@ wasm-bindgen-futures = "0.4.71"
 inherits = "release"
 opt-level = "z"
 lto = "fat"
+
+[patch.crates-io]
+cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }
+cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }
+cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }
+cranpose-foundation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }
+cranpose-ui = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }
+cranpose-ui-graphics = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "3fd3ec7c9857c708e214ea80fa1f03bc140ea8a7" }

@@ -17,6 +17,7 @@ pub fn create_app() -> AppLauncher {
     AppLauncher::new()
         .with_title("Showcase Cranpose")
         .with_size(412, 915)
+        .with_android_gpu_backend(cranpose::AndroidGpuBackend::OpenGlEs)
         .with_fps_counter(false)
 }
 
