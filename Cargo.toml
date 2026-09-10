@@ -101,9 +101,9 @@ opt-level = "z"
 lto = "fat"
 
 [patch.crates-io]
-cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
-cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
-cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
-cranpose-foundation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
-cranpose-ui = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
-cranpose-ui-graphics = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "e97ef6b0f726145724017aee436f94095b30a33b" }
+cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
+cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
+cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
+cranpose-foundation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
+cranpose-ui = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
+cranpose-ui-graphics = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "583e513932425c7509f6d39fdaefd6f149fdcf95" }
