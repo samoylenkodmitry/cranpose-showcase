@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="icon" type="image/png" href="app-icon.png" />
   <title>Showcase Cranpose</title>
   <style>
@@ -17,23 +17,31 @@
     html,
     body {
       margin: 0;
-      min-height: 100%;
       background: #05060c;
     }
 
     body {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
       padding: 18px;
+      padding-top: max(18px, env(safe-area-inset-top));
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
+      overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #e9edf5;
     }
 
     .stage {
       position: relative;
-      width: min(96vw, 430px);
-      height: min(94vh, 932px);
+      flex: 1 1 auto;
+      min-height: 0;
+      width: min(100%, 430px);
+      max-height: 932px;
       border-radius: 28px;
       overflow: hidden;
       background: radial-gradient(120% 120% at 30% 15%, #171b2c 0%, #05060c 65%);
@@ -42,6 +50,8 @@
 
     canvas {
       display: block;
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
     }
@@ -97,7 +107,7 @@
     }
 
     .links {
-      margin-top: 14px;
+      flex: 0 0 auto;
       font-size: 0.8rem;
     }
 
