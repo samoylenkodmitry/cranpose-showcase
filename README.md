@@ -25,6 +25,9 @@ ships to desktop, Android, iOS, and the web.
   and ring variants.
 - Compose-style state, keyed lazy lists, scroll-linked parallax, transitions,
   and platform safe-area handling.
+- One layout that splits into a list column and a detail pane on a desktop
+  window and folds back to a single column on a phone, holding a row to a
+  readable width at every size.
 
 ## Run locally
 

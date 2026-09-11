@@ -18,6 +18,7 @@ use crate::model::{BodyKind, CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
 use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
+use crate::widgets::source_link::SourceLink;
 use crate::widgets::starfield::{Starfield, StarfieldScroll};
 use crate::widgets::surfaces::showcase_glass;
 
@@ -36,6 +37,9 @@ const CATEGORIES: &[(&str, Option<BodyKind>)] = &[
     ("Exoplanet", Some(BodyKind::Exoplanet)),
 ];
 const CONTENT_MARGIN: f32 = 20.0;
+/// The widest a row is drawn. A window wider than this keeps the column
+/// centred instead of stretching a card across the display.
+const ROW_MAX_WIDTH: f32 = 520.0;
 
 fn kind_color(colors: LiquidColors, kind: BodyKind) -> Color {
     match kind {
@@ -295,6 +299,14 @@ pub fn ListScreen(
     let on_open: Rc<dyn Fn(usize)> = Rc::new(on_open);
     with_key(&tab, move || {
         let list_state = rememberLazyListState();
+        // Reported rather than subcomposed under a `BoxWithConstraints`: the
+        // rows animate, and an animated read inside a measure-phase
+        // subcomposition has no invalidation path.
+        let pane_size = rememberMutableStateOf(|| Size {
+            width: 0.0,
+            height: 0.0,
+        });
+        let side_margin = CONTENT_MARGIN.max((pane_size.get().width - ROW_MAX_WIDTH) * 0.5);
         let category: MutableState<usize> = rememberMutableStateOf(|| 0usize);
         let search = remember(|| TextFieldState::new("")).with(|state| *state);
         let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
@@ -319,7 +331,9 @@ pub fn ListScreen(
             .map(|(index, _)| index)
             .collect();
         Box(
-            Modifier::empty().fill_max_size(),
+            Modifier::empty()
+                .fill_max_size()
+                .report_size_state(pane_size),
             BoxSpec::default(),
             move || {
                 Starfield(
@@ -336,9 +350,9 @@ pub fn ListScreen(
                 let on_open = on_open.clone();
                 LazyColumn(
                     Modifier::empty().fill_max_size().padding_each(
-                        CONTENT_MARGIN,
+                        side_margin,
                         0.0,
-                        CONTENT_MARGIN,
+                        side_margin,
                         0.0,
                     ),
                     list_state,
@@ -347,10 +361,19 @@ pub fn ListScreen(
                         .vertical_arrangement(LinearArrangement::spaced_by(14.0)),
                     move |scope| {
                         scope.item(move || {
-                            SearchField(
+                            Row(
                                 Modifier::empty().fill_max_width(),
-                                search,
-                                "Search the sky",
+                                RowSpec::default()
+                                    .vertical_alignment(VerticalAlignment::CenterVertically)
+                                    .horizontal_arrangement(LinearArrangement::spaced_by(10.0)),
+                                move || {
+                                    SearchField(
+                                        Modifier::empty().weight(1.0),
+                                        search,
+                                        "Search the sky",
+                                    );
+                                    SourceLink();
+                                },
                             );
                             Box(Modifier::empty().height(8.0), BoxSpec::default(), || {});
                             Row(

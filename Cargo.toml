@@ -38,6 +38,16 @@ name = "robot-app-screens"
 path = "robot-runners/robot_app_screens.rs"
 required-features = ["robot-preview"]
 
+[[bin]]
+name = "robot-saved-removal"
+path = "robot-runners/robot_saved_removal.rs"
+required-features = ["robot-preview"]
+
+[[bin]]
+name = "robot-wide-layout"
+path = "robot-runners/robot_wide_layout.rs"
+required-features = ["robot-preview"]
+
 [features]
 default = ["renderer-wgpu", "desktop"]
 renderer-pixels = ["cranpose/renderer-pixels"]
