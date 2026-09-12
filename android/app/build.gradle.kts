@@ -32,8 +32,8 @@ android {
         applicationId = "com.cranpose.showcase"
         minSdk = 26
         targetSdk = 36
-        versionCode = 115
-        versionName = "0.1.16"
+        versionCode = 116
+        versionName = "0.1.17"
     }
 
     buildTypes {
