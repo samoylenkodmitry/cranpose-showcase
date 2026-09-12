@@ -15,6 +15,10 @@ use crate::widgets::planet::PlanetSphere;
 use crate::widgets::starfield::{Starfield, StarfieldScroll};
 use crate::widgets::surfaces::showcase_glass;
 
+/// The widest the page lets its own content grow. A desktop pane centres the
+/// column instead of stretching a stat tile across the window.
+const CONTENT_MAX_WIDTH: f32 = 620.0;
+
 fn secondary_style(colors: LiquidColors, base: TextStyle) -> TextStyle {
     base.merge(&TextStyle {
         span_style: SpanStyle {
@@ -270,30 +274,40 @@ fn RelatedRow(
     );
 }
 
-/// The full-screen detail page for one celestial body: a hero sphere, a
-/// stat grid, its description, an interactive gravity toy, and a horizontal
-/// strip of related worlds. `ambient` is the shared ambient animation state
-/// so the hero's highlight and the backdrop drift in sync with the list
-/// behind it.
+/// The detail page for one celestial body: a hero sphere, a stat grid, its
+/// description, an interactive gravity toy, and a horizontal strip of related
+/// worlds. `ambient` is the shared ambient animation state so the hero's
+/// highlight and the backdrop drift in sync with the list behind it.
+///
+/// `on_back` is `None` where the page is not something to come back from —
+/// the split layout keeps the list beside it, so there is nowhere to go.
 #[composable]
 pub fn DetailScreen(
     body_index: usize,
     favorite: bool,
     favorite_count: usize,
     ambient: AmbientMotion,
-    on_back: impl Fn() + 'static,
+    on_back: Option<Rc<dyn Fn()>>,
     on_toggle_favorite: impl Fn() + 'static,
     on_open_related: impl Fn(usize) + 'static,
 ) {
-    let on_back: Rc<dyn Fn()> = Rc::new(on_back);
     let on_toggle_favorite: Rc<dyn Fn()> = Rc::new(on_toggle_favorite);
     let on_open_related: Rc<dyn Fn(usize)> = Rc::new(on_open_related);
     let body = &BODIES[body_index];
     let scroll = rememberKeyed(body_index, |_| ScrollState::new(0.0));
     let system_bars = local_safe_area_insets().current();
+    // Reported rather than subcomposed: the page's own content animates, and
+    // a `BoxWithConstraints` would read those animations inside a measure pass.
+    let page_size = rememberMutableStateOf(|| Size {
+        width: 0.0,
+        height: 0.0,
+    });
+    let page_width = page_size.get().width;
 
     Box(
-        Modifier::empty().fill_max_size(),
+        Modifier::empty()
+            .fill_max_size()
+            .report_size_state(page_size),
         BoxSpec::default(),
         move || {
             Starfield(
@@ -304,19 +318,35 @@ pub fn DetailScreen(
             );
             let on_toggle_favorite = on_toggle_favorite.clone();
             let on_open_related = on_open_related.clone();
-            Column(
+            let column = if page_width > CONTENT_MAX_WIDTH {
+                Modifier::empty().width(CONTENT_MAX_WIDTH)
+            } else {
+                Modifier::empty().fill_max_width()
+            };
+            Box(
                 Modifier::empty()
                     .fill_max_size()
                     .vertical_scroll(scroll, false)
                     .padding_each(0.0, 88.0, 0.0, 48.0),
-                ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(22.0)),
+                BoxSpec::default().content_alignment(Alignment::new(
+                    HorizontalAlignment::CenterHorizontally,
+                    VerticalAlignment::Top,
+                )),
                 move || {
                     let on_open_related = on_open_related.clone();
-                    Hero(body, ambient);
-                    StatsGrid(body);
-                    Description(body);
-                    GravityPlayground(body);
-                    RelatedRow(body, ambient, move |target| on_open_related(target));
+                    Column(
+                        column.clone(),
+                        ColumnSpec::default()
+                            .vertical_arrangement(LinearArrangement::spaced_by(22.0)),
+                        move || {
+                            let on_open_related = on_open_related.clone();
+                            Hero(body, ambient);
+                            StatsGrid(body);
+                            Description(body);
+                            GravityPlayground(body);
+                            RelatedRow(body, ambient, move |target| on_open_related(target));
+                        },
+                    );
                 },
             );
             HeaderBlurGradient();
@@ -335,14 +365,24 @@ pub fn DetailScreen(
                     let on_back = on_back.clone();
                     let on_toggle_favorite = on_toggle_favorite.clone();
                     move || {
-                        let back = on_back.clone();
-                        GlassIconButton(
-                            Modifier::empty(),
-                            GlassButtonSpec::glass(),
-                            40.0,
-                            move || back(),
-                            icons::CHEVRON_LEFT,
-                        );
+                        if let Some(back) = on_back.clone() {
+                            GlassIconButton(
+                                Modifier::empty(),
+                                GlassButtonSpec::glass(),
+                                40.0,
+                                move || back(),
+                                icons::CHEVRON_LEFT,
+                            );
+                        } else {
+                            Box(
+                                Modifier::empty().size(Size {
+                                    width: 0.0,
+                                    height: 40.0,
+                                }),
+                                BoxSpec::default(),
+                                || {},
+                            );
+                        }
                         let toggle = on_toggle_favorite.clone();
                         FavoriteButton(favorite, move || toggle());
                     }

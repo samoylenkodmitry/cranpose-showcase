@@ -1,6 +1,6 @@
 [package]
 name = "cranpose-showcase"
-version = "0.1.14"
+version = "0.1.15"
 edition = "2021"
 description = "A cross-platform showcase of the Cranpose UI framework"
 license = "Apache-2.0"
@@ -38,6 +38,21 @@ name = "robot-app-screens"
 path = "robot-runners/robot_app_screens.rs"
 required-features = ["robot-preview"]
 
+[[bin]]
+name = "robot-saved-removal"
+path = "robot-runners/robot_saved_removal.rs"
+required-features = ["robot-preview"]
+
+[[bin]]
+name = "robot-wide-layout"
+path = "robot-runners/robot_wide_layout.rs"
+required-features = ["robot-preview"]
+
+[[bin]]
+name = "robot-tab-switch"
+path = "robot-runners/robot_tab_switch.rs"
+required-features = ["robot-preview"]
+
 [features]
 default = ["renderer-wgpu", "desktop"]
 renderer-pixels = ["cranpose/renderer-pixels"]
@@ -50,12 +65,12 @@ logging = ["dep:env_logger"]
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-cranpose = "0.1.118"
-cranpose-core = "0.1.118"
-cranpose-animation = "0.1.118"
-cranpose-foundation = "0.1.118"
-cranpose-ui = "0.1.118"
-cranpose-ui-graphics = "0.1.118"
+cranpose = "0.1.120"
+cranpose-core = "0.1.120"
+cranpose-animation = "0.1.120"
+cranpose-foundation = "0.1.120"
+cranpose-ui = "0.1.120"
+cranpose-ui-graphics = "0.1.120"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
