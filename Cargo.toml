@@ -48,6 +48,11 @@ name = "robot-wide-layout"
 path = "robot-runners/robot_wide_layout.rs"
 required-features = ["robot-preview"]
 
+[[bin]]
+name = "robot-tab-switch"
+path = "robot-runners/robot_tab_switch.rs"
+required-features = ["robot-preview"]
+
 [features]
 default = ["renderer-wgpu", "desktop"]
 renderer-pixels = ["cranpose/renderer-pixels"]
