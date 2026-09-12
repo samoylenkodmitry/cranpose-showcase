@@ -87,9 +87,43 @@ fn assert_list_leaves_composition_on_detail(robot: &Robot) {
     );
 }
 
+const SETTLE_SLOT: Duration = Duration::from_millis(250);
+const SETTLE_DEADLINE: Duration = Duration::from_millis(5_000);
+
+/// Blocks until the composition stops recomposing, so the ambient-motion
+/// measurement that follows cannot charge a route change, a tab glide or a
+/// scroll settle to the ambient animation. A window that rendered no frames
+/// proves nothing — an armed animation is not sampled until something draws —
+/// so only a window that both rendered and did not recompose counts as quiet,
+/// and two in a row are required before measuring.
+fn wait_for_composition_to_settle(robot: &Robot, screen: &str) {
+    let slots = SETTLE_DEADLINE.as_millis() / SETTLE_SLOT.as_millis();
+    let mut series = Vec::new();
+    let mut quiet = 0;
+    for _ in 0..slots {
+        robot.reset_fps_stats().expect("reset frame statistics");
+        std::thread::sleep(SETTLE_SLOT);
+        robot.pump_frames(4).expect("advance settling animations");
+        let stats = robot.fps_stats().expect("read frame statistics");
+        series.push((stats.recompositions, stats.frame_count));
+        if stats.recompositions == 0 && stats.frame_count > 0 {
+            quiet += 1;
+            if quiet == 2 {
+                return;
+            }
+        } else {
+            quiet = 0;
+        }
+    }
+    panic!(
+        "{screen} never settled within {}ms: (recompositions, frames) per {}ms window were {series:?}",
+        SETTLE_DEADLINE.as_millis(),
+        SETTLE_SLOT.as_millis()
+    );
+}
+
 fn assert_ambient_motion_does_not_recompose(robot: &Robot, screen: &str) {
-    std::thread::sleep(Duration::from_millis(700));
-    robot.pump_frames(8).expect("settle screen animations");
+    wait_for_composition_to_settle(robot, screen);
     robot.reset_fps_stats().expect("reset frame statistics");
     std::thread::sleep(Duration::from_millis(1_100));
     robot.pump_frames(8).expect("advance ambient animation");
