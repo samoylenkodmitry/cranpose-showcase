@@ -171,12 +171,7 @@ fn SplitShell(state: ShellState) {
 }
 
 /// The body list with the Explore/Saved tab bar docked over its bottom.
-///
-/// `no_skip`: this pane is the whole of a crossfade entry, and an entry that
-/// takes the skip path keeps showing the list it held before — an un-starred
-/// row stays on screen and the departed rows pile up behind it. Recomposing
-/// with the shell costs one cheap pass and keeps the screen honest.
-#[composable(no_skip)]
+#[composable]
 fn ListPane(state: ShellState) {
     let system_bars = local_safe_area_insets().current();
     let tab = state.tab;
