@@ -268,6 +268,7 @@ fn NoSelectionPane(state: ShellState) {
                         move || {
                             icons::Icon(
                                 icons::ROCKET,
+                                None,
                                 34.0,
                                 Color::from_rgba_u8(255, 255, 255, 120),
                             );

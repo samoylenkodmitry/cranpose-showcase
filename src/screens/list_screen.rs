@@ -258,7 +258,12 @@ fn EmptySavedState() {
                     }),
                 BoxSpec::default().content_alignment(Alignment::CENTER),
                 || {
-                    icons::Icon(icons::STAR, 36.0, Color::from_rgba_u8(255, 255, 255, 90));
+                    icons::Icon(
+                        icons::STAR,
+                        None,
+                        36.0,
+                        Color::from_rgba_u8(255, 255, 255, 90),
+                    );
                 },
             );
             Text(

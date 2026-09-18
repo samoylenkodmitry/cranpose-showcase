@@ -27,7 +27,7 @@ pub fn SourceLink() {
                     .vertical_alignment(VerticalAlignment::CenterVertically)
                     .horizontal_arrangement(LinearArrangement::spaced_by(6.0)),
                 || {
-                    icons::Icon(icons::SHARE, 15.0, liquid_colors().label);
+                    icons::Icon(icons::SHARE, None, 15.0, liquid_colors().label);
                     Text(
                         "Source",
                         Modifier::empty(),
