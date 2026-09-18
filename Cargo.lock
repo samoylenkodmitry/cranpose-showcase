@@ -692,9 +692,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bf6dc10d58f09dd33e30892626ecfda0376b7b7bf937c8e6dc0f50566b5fa4f"
+checksum = "e0b1224475c16008b15bc47551223f30f374ed48bc72607ed077d76838a3ee94"
 dependencies = [
  "accesskit",
  "accesskit_macos",
@@ -705,6 +705,7 @@ dependencies = [
  "block2 0.6.2",
  "console_error_panic_hook",
  "cranpose-app-shell",
+ "cranpose-capabilities",
  "cranpose-core",
  "cranpose-liquid",
  "cranpose-platform-android",
@@ -750,19 +751,20 @@ dependencies = [
 
 [[package]]
 name = "cranpose-animation"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "184aea1ff17f00063f387e5ae4b831de6fca8c5f762c18b124dbd2d8171bf964"
+checksum = "5bbc580a7b9261adbb9a611beb19e3ec96e0fe13e66f3fd6f7821dbf4fd2efbc"
 dependencies = [
  "cranpose-core",
+ "cranpose-services",
  "cranpose-ui-graphics",
 ]
 
 [[package]]
 name = "cranpose-app-shell"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2865eea98d2b0e78e8a41b3b8a298d909dd8b6040611630794655aa1f9130a5d"
+checksum = "2ade15b8ce703ed44bf84cc467cd49a48f94b1bd2c038697238e0b593c2e74d9"
 dependencies = [
  "arboard",
  "cranpose-core",
@@ -776,10 +778,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "cranpose-core"
-version = "0.1.126"
+name = "cranpose-capabilities"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ee55194db2ae4c07230433a79a3824c0ece9688785d2aa1aeeaeea0c5538df4"
+checksum = "05187639257786379d6399818163fdb3e1aa642fac07ca79be4c762f167abf84"
+
+[[package]]
+name = "cranpose-core"
+version = "0.1.138"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2d9de57bb3be843ff8433ec19212df753e2d39af7e03bf3c2a107ac2e64c02b"
 dependencies = [
  "ahash",
  "futures-task",
@@ -794,9 +802,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-foundation"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4277de8f5505ff7231e44590d883c6cbd282eeb10a20bd404d7265a4972daa3e"
+checksum = "f5b1015a0cf98517395279af2eb3916c0c0d80c7037bde9b0dc83ea1680c256e"
 dependencies = [
  "cranpose-core",
  "cranpose-macros",
@@ -809,9 +817,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-liquid"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d18f0b123998dbd65169e0e60cbfb6e28c63a870ee3b6ec189ff43684717d2bc"
+checksum = "4ae3fe8d130dc09625a5a1ee381fc98ccafdd6b8040226b3d5e0734e01b502a9"
 dependencies = [
  "cranpose-animation",
  "cranpose-core",
@@ -827,9 +835,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-macros"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a2a24a76402abcaa0cc316c048995e2d2a6496b6683e210bfc9174a3fa5d50b"
+checksum = "89995d637134bba1c13771c420c5e621b47b005bc60ff83b1a44a56d409a465c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -839,18 +847,18 @@ dependencies = [
 
 [[package]]
 name = "cranpose-platform-android"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e51d871c3a8911839e85e2f14e832bbe61a4cf3008026d7a7aa98a7641c0896"
+checksum = "fffd818a6ba9060469eff76c03d7192a8773c3b4b0cd8b8e74d64b0c235b3407"
 dependencies = [
  "cranpose-ui-graphics",
 ]
 
 [[package]]
 name = "cranpose-platform-desktop-winit"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec71363b3bf4ab820a3060fc2b5d71a582805600dc16d829e8518cebee535ef3"
+checksum = "913aaa6c4852ac7c90c596be2704e3f7dbf0f72fae820057b4dfa91c8722aa2d"
 dependencies = [
  "cranpose-foundation",
  "cranpose-ui-graphics",
@@ -859,9 +867,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-platform-web"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "462b5cf036b062e759bd4dbcef4120ab2b287a2efcff39a1eaea08e21fbc6d6a"
+checksum = "787dc7b0e791792e50e070369856faa52939cba91ba4c37da508b3f90ece14a5"
 dependencies = [
  "cranpose-foundation",
  "cranpose-ui-graphics",
@@ -869,9 +877,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-render-common"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3175df10b49a1a88eb61cdccd9d058ccc68861e51c5e82d58a890d00c07ade85"
+checksum = "6eb8401e343ce6a2543554ab97e52ca33c9a5ba97c68dcdebe164c30d6adb476"
 dependencies = [
  "ab_glyph",
  "cranpose-core",
@@ -887,9 +895,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-render-pixels"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf9ddaf9f9e77272f99825dfcf9c35e6f86398abd839a4d332d7fdafde8ce567"
+checksum = "b59ad76f39e8ec2ba8913c60dadd361c42fafc4dd5d16344f43f03d3348ad1a0"
 dependencies = [
  "cranpose-core",
  "cranpose-foundation",
@@ -902,9 +910,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-render-wgpu"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "177d661106031d7dd1f734b041f6423e9249160fc42c6f87b32a92e75f788ae7"
+checksum = "75804b698a005eb4e86ccb1bfb9562608dde684a01c4952d77d45bebe4f167a0"
 dependencies = [
  "bytemuck",
  "cranpose-core",
@@ -923,9 +931,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-runtime-std"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d007538a3f8a1d432e320965bd37acb314b0e62965debb31e13f710c7c43bafc"
+checksum = "90679fbb20a524761dc427927ba531326b32e91b51e2c0dba4ea1a5aad6ba006"
 dependencies = [
  "cranpose-core",
  "web-time",
@@ -933,9 +941,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-services"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3049d44bc3c31c9c975a6d18263ba4b0268fc8bb95892321916bd01a85aede74"
+checksum = "912b5d05f0e3a1a9ea7c4c64968767c99575c6baf676cf0026fff5ee0374636f"
 dependencies = [
  "cranpose-core",
  "cranpose-macros",
@@ -980,9 +988,9 @@ dependencies = [
 
 [[package]]
 name = "cranpose-ui"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e83407eddf6e621fbd1d93c892163ab1d22bc8bef387beb0dd9b4bbe87890d20"
+checksum = "299756b312c9dc4842cc424aba3036026c3e85b647811bfca4f7441c9a3c9438"
 dependencies = [
  "cranpose-animation",
  "cranpose-core",
@@ -999,20 +1007,21 @@ dependencies = [
 
 [[package]]
 name = "cranpose-ui-graphics"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d40eb365317b58407f1aaf5cffba1eeed04aa0d83f4280c24ca59b0fccf9141"
+checksum = "a8d7f08f2c875c1fb4a647304a1b59e8ddbf90d6a3939380cf5818d8221915a4"
 dependencies = [
  "arrayvec",
  "bytemuck",
+ "cursor-icon",
  "thiserror 2.0.20",
 ]
 
 [[package]]
 name = "cranpose-ui-layout"
-version = "0.1.126"
+version = "0.1.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ca76e235389c1218a3cbbca52528487365f4b26fd94cc947cfb7f0feee481a2"
+checksum = "ac379cfeb8da223bbd841f1facd8aa52f88051a71f0bb0765ce01ca6d3034d79"
 dependencies = [
  "cranpose-core",
  "cranpose-ui-graphics",
