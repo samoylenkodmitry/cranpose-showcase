@@ -65,12 +65,12 @@ logging = ["dep:env_logger"]
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-cranpose = "0.1.138"
-cranpose-core = "0.1.138"
-cranpose-animation = "0.1.138"
-cranpose-foundation = "0.1.138"
-cranpose-ui = "0.1.138"
-cranpose-ui-graphics = "0.1.138"
+cranpose = "0.1.149"
+cranpose-core = "0.1.149"
+cranpose-animation = "0.1.149"
+cranpose-foundation = "0.1.149"
+cranpose-ui = "0.1.149"
+cranpose-ui-graphics = "0.1.149"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
