@@ -968,7 +968,7 @@ dependencies = [
 
 [[package]]
 name = "cranpose-showcase"
-version = "0.1.21"
+version = "0.1.22"
 dependencies = [
  "console_error_panic_hook",
  "cranpose",
