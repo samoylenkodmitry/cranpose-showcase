@@ -19,14 +19,14 @@ fn favorites_toggle_one_body_at_a_time() {
     let favorites = Favorites::new(BODIES.len());
     let earth = favorites.is_saved(EARTH);
     let mut earth = scheduler.turbine(&earth);
-    assert_eq!(earth.await_item(), false);
+    assert!(!earth.await_item());
 
     assert!(favorites.toggle(EARTH));
-    assert_eq!(earth.await_item(), true);
+    assert!(earth.await_item());
     assert!(favorites.toggle(MARS));
     earth.expect_no_events();
     assert!(!favorites.toggle(EARTH));
-    assert_eq!(earth.await_item(), false);
+    assert!(!earth.await_item());
     assert_eq!(
         favorites
             .saved()
