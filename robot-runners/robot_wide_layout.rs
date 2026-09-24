@@ -11,10 +11,14 @@
 
 #[path = "../src/app.rs"]
 mod app;
+#[path = "../src/data/mod.rs"]
+mod data;
 #[path = "../src/model.rs"]
 mod model;
 #[path = "../src/motion.rs"]
 mod motion;
+#[path = "../src/presentation/mod.rs"]
+mod presentation;
 #[path = "../src/screens/mod.rs"]
 mod screens;
 #[path = "../src/widgets/mod.rs"]
@@ -61,7 +65,7 @@ fn main() {
             );
 
             let (x, y, width, height) = robot
-                .find_text_bounds("Earth")
+                .find_text_bounds_exact("Earth")
                 .expect("query Earth row")
                 .expect("Earth row is present");
             assert!(

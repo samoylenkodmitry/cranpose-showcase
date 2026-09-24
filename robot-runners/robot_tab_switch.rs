@@ -10,10 +10,14 @@
 
 #[path = "../src/app.rs"]
 mod app;
+#[path = "../src/data/mod.rs"]
+mod data;
 #[path = "../src/model.rs"]
 mod model;
 #[path = "../src/motion.rs"]
 mod motion;
+#[path = "../src/presentation/mod.rs"]
+mod presentation;
 #[path = "../src/screens/mod.rs"]
 mod screens;
 #[path = "../src/widgets/mod.rs"]
@@ -53,7 +57,9 @@ fn shows(robot: &Robot, name: &str) -> bool {
 /// Whether a card title sits within the press's row, which is what makes this
 /// test able to fail at all.
 fn card_under(robot: &Robot, y: f32) -> bool {
-    label_bounds(robot, "Jupiter").is_some_and(|(_, title_y, _, _)| (title_y - y).abs() < 30.0)
+    model::BODIES.iter().any(|body| {
+        label_bounds(robot, body.name).is_some_and(|(_, title_y, _, _)| (title_y - y).abs() < 30.0)
+    })
 }
 
 fn press_tab(robot: &Robot, tab: &str) -> (f32, bool) {
