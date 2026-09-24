@@ -6,8 +6,10 @@ use cranpose::liquid::prelude::*;
 use cranpose::prelude::*;
 use cranpose::BackHandler;
 use cranpose_animation::prelude::{tween, Easing};
+use cranpose_coroflow::{rememberHandle, Handle, StateFlowCollect, ViewModelStoreOwner};
+use cranpose_navigation::{rememberNavController, NavController, NavHostWith, NavOptions};
 
-use crate::model::BODIES;
+use crate::data::AppServices;
 use crate::motion::{rememberAmbientMotion, AmbientMotion};
 use crate::screens::detail_screen::DetailScreen;
 use crate::screens::list_screen::{ListScreen, Tab};
@@ -30,39 +32,38 @@ pub fn create_app() -> AppLauncher {
         .with_fps_counter(false)
 }
 
+/// Where the app can go. The phone layout shows one route at a time through
+/// a `NavHost`; the wide layout keeps the list beside the current route.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Route {
     List,
     Detail(usize),
 }
 
-/// Everything both layouts need: the navigation state, the favourites, and
-/// the ambient animation the starfield and every planet read.
+/// Everything both layouts need: the navigation state, the app's services,
+/// and the ambient animation the starfield and every planet read.
 #[derive(Clone, Copy, PartialEq)]
 struct ShellState {
     tab: MutableState<Tab>,
-    route: MutableState<Route>,
-    favorites: MutableState<Vec<bool>>,
+    nav: NavController<Route>,
+    services: Handle<AppServices>,
     destination: Route,
     favorite_count: usize,
     ambient: AmbientMotion,
 }
 
 impl ShellState {
+    /// Opens body `index`. Back always returns to the list, however many
+    /// related bodies were opened on the way.
     fn open(self, index: usize) {
-        self.route.set(Route::Detail(index));
+        self.nav.navigate_with(
+            Route::Detail(index),
+            NavOptions::new().pop_up_to(Route::List, false),
+        );
     }
 
-    fn toggle_favorite(self, index: usize) {
-        let mut current = self.favorites.get();
-        if let Some(flag) = current.get_mut(index) {
-            *flag = !*flag;
-        }
-        self.favorites.set(current);
-    }
-
-    fn is_favorite(self, index: usize) -> bool {
-        self.favorites.get().get(index).copied().unwrap_or(false)
+    fn back(self) {
+        self.nav.navigate_up();
     }
 }
 
@@ -82,24 +83,30 @@ pub fn ShowcaseApp() {
 
 #[composable]
 fn RootShell() {
+    let services = rememberHandle(AppServices::default);
     let tab = rememberMutableStateOf(|| Tab::Explore);
-    let route = rememberMutableStateOf(|| Route::List);
-    let favorites = rememberMutableStateOf(|| vec![false; BODIES.len()]);
+    let nav = rememberNavController(Route::List);
 
-    let destination = route.get();
+    let destination = nav.current_route().unwrap_or(Route::List);
     let showing_detail = matches!(destination, Route::Detail(_));
-    let favorite_count = favorites.get().iter().filter(|&&favorite| favorite).count();
+    let favorite_count = services
+        .get()
+        .favorites
+        .saved()
+        .collectAsState()
+        .get()
+        .iter()
+        .filter(|&&favorite| favorite)
+        .count();
     let ambient = rememberAmbientMotion(showing_detail);
     let state = ShellState {
         tab,
-        route,
-        favorites,
+        nav,
+        services,
         destination,
         favorite_count,
         ambient,
     };
-
-    BackHandler(showing_detail, move || route.set(Route::List));
 
     // The shell reports its own size rather than subcomposing under a
     // `BoxWithConstraints`: everything below here animates, and an animated
@@ -125,13 +132,14 @@ fn RootShell() {
 }
 
 /// Phone and portrait tablet: one screen at a time, crossfading between the
-/// list and a body's detail.
+/// list and a body's detail. Each screen keeps its view models while the
+/// other covers it.
 #[composable]
 fn StackedShell(state: ShellState) {
-    Crossfade(
-        state.destination,
+    NavHostWith(
+        state.nav,
         tween(260, Easing::EaseOut),
-        move |destination| match destination {
+        move |route| match route {
             Route::List => ListPane(state),
             Route::Detail(index) => BodyDetail(state, index, true),
         },
@@ -143,6 +151,9 @@ fn StackedShell(state: ShellState) {
 /// is stretched across a wide display.
 #[composable]
 fn SplitShell(state: ShellState) {
+    BackHandler(matches!(state.destination, Route::Detail(_)), move || {
+        state.back();
+    });
     Row(
         Modifier::empty().fill_max_size(),
         RowSpec::default(),
@@ -150,7 +161,9 @@ fn SplitShell(state: ShellState) {
             Box(
                 Modifier::empty().width(LIST_PANE_WIDTH).fill_max_height(),
                 BoxSpec::default(),
-                move || ListPane(state),
+                // The list sits outside the NavHost here, so it gets a store
+                // of its own for its cards' view models.
+                move || ViewModelStoreOwner(move || ListPane(state)),
             );
             Box(
                 Modifier::empty().weight(1.0).fill_max_height(),
@@ -180,7 +193,7 @@ fn ListPane(state: ShellState) {
     let current_tab = tab.get();
     ListScreen(
         current_tab,
-        state.favorites,
+        state.services,
         state.favorite_count,
         state.ambient,
         move |index| state.open(index),
@@ -226,17 +239,21 @@ fn ListPane(state: ShellState) {
 /// there is nowhere to go back to.
 #[composable]
 fn BodyDetail(state: ShellState, index: usize, with_back: bool) {
+    let favorites = state.services.get().favorites.clone();
+    let saved = favorites.saved().collectAsState().get();
     let on_back = with_back.then(|| {
-        let handler: Rc<dyn Fn()> = Rc::new(move || state.route.set(Route::List));
+        let handler: Rc<dyn Fn()> = Rc::new(move || state.back());
         handler
     });
     DetailScreen(
         index,
-        state.is_favorite(index),
+        saved.get(index).copied().unwrap_or(false),
         state.favorite_count,
         state.ambient,
         on_back,
-        move || state.toggle_favorite(index),
+        move || {
+            favorites.toggle(index);
+        },
         move |target| state.open(target),
     );
 }

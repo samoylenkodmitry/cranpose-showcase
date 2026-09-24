@@ -3,9 +3,13 @@
 #[cfg(target_os = "ios")]
 mod app;
 #[cfg(target_os = "ios")]
+mod data;
+#[cfg(target_os = "ios")]
 mod model;
 #[cfg(target_os = "ios")]
 mod motion;
+#[cfg(target_os = "ios")]
+mod presentation;
 #[cfg(target_os = "ios")]
 mod screens;
 #[cfg(target_os = "ios")]

@@ -14,8 +14,14 @@ use cranpose_foundation::{
 use cranpose_ui::text::{FontWeight, TextUnit};
 use cranpose_ui_graphics::Stroke;
 
+use coroflow::FlowExt;
+use cranpose_coroflow::{viewModel, CollectFlow, Handle, StateFlowCollect};
+
+use crate::data::AppServices;
 use crate::model::{BodyKind, CelestialBody, BODIES};
 use crate::motion::AmbientMotion;
+use crate::presentation::body_card_view_model::BodyCardViewModel;
+use crate::presentation::screen_messages::ScreenMessages;
 use crate::widgets::header_glass::HeaderBlurGradient;
 use crate::widgets::planet::PlanetSphere;
 use crate::widgets::source_link::SourceLink;
@@ -131,10 +137,47 @@ pub(crate) fn FavoriteButton(favorite: bool, on_toggle: impl Fn() + 'static) {
     );
 }
 
+/// One body's card. It resolves its own view model from the screen's store,
+/// keyed by the body, so the list only tells it which body to show: the
+/// pattern for any self-contained part of the UI with business logic of its
+/// own.
 #[composable]
-fn BodyCard(
+pub fn BodyCard(
+    index: usize,
+    services: Handle<AppServices>,
+    ambient: AmbientMotion,
+    on_open: impl Fn() + 'static,
+) {
+    let messages = viewModel((), |_| ScreenMessages::default());
+    let card = viewModel(index, move |scope| {
+        let services = services.get();
+        BodyCardViewModel::new(
+            scope,
+            index,
+            services.favorites.clone(),
+            services.facts.clone(),
+            messages.get(),
+        )
+    });
+    let saved = card.get().saved().collectAsStateWithLifecycle().get();
+    let fact = card.get().fact().collectAsStateWithLifecycle().get();
+    BodyCardContent(
+        &BODIES[index],
+        saved,
+        fact,
+        ambient,
+        move || card.get().on_toggle_saved(),
+        on_open,
+    );
+}
+
+/// What a body card draws, given everything it shows. Previews and tests
+/// compose it directly.
+#[composable]
+pub fn BodyCardContent(
     body: &'static CelestialBody,
     favorite: bool,
+    fact: Option<String>,
     ambient: AmbientMotion,
     on_toggle_favorite: impl Fn() + 'static,
     on_open: impl Fn() + 'static,
@@ -150,6 +193,7 @@ fn BodyCard(
         move || {
             let colors = liquid_colors();
             let on_toggle_favorite = on_toggle_favorite.clone();
+            let fact = fact.clone();
             Row(
                 Modifier::empty().fill_max_width().padding(14.0),
                 RowSpec::default().vertical_alignment(VerticalAlignment::CenterVertically),
@@ -163,6 +207,7 @@ fn BodyCard(
                         ambient,
                     );
                     Box(Modifier::empty().width(14.0), BoxSpec::default(), || {});
+                    let fact = fact.clone();
                     Column(
                         Modifier::empty().weight(1.0),
                         ColumnSpec::default()
@@ -194,6 +239,18 @@ fn BodyCard(
                                 liquid_typography().subheadline.merge(&TextStyle {
                                     span_style: SpanStyle {
                                         color: Some(colors.secondary_label),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }),
+                            );
+                            Text(
+                                fact.clone()
+                                    .unwrap_or_else(|| "Looking up a fact…".to_owned()),
+                                Modifier::empty(),
+                                liquid_typography().caption1.merge(&TextStyle {
+                                    span_style: SpanStyle {
+                                        color: Some(colors.tertiary_label),
                                         ..Default::default()
                                     },
                                     ..Default::default()
@@ -296,12 +353,26 @@ fn EmptySavedState() {
 #[composable]
 pub fn ListScreen(
     tab: Tab,
-    favorites: MutableState<Vec<bool>>,
+    services: Handle<AppServices>,
     favorite_count: usize,
     ambient: AmbientMotion,
     on_open: impl Fn(usize) + 'static,
 ) {
     let on_open: Rc<dyn Fn(usize)> = Rc::new(on_open);
+    let messages = viewModel((), |_| ScreenMessages::default());
+    let toast = rememberMutableStateOf(|| None::<String>);
+    CollectFlow(
+        (),
+        messages
+            .get()
+            .events()
+            .transform_latest(async |message: String, emitter| {
+                emitter.emit(Some(message)).await;
+                coroflow::delay(TOAST_DURATION).await;
+                emitter.emit(None).await;
+            }),
+        move |message| toast.set(message),
+    );
     with_key(&tab, move || {
         let list_state = rememberLazyListState();
         // Reported rather than subcomposed under a `BoxWithConstraints`: the
@@ -315,7 +386,7 @@ pub fn ListScreen(
         let category: MutableState<usize> = rememberMutableStateOf(|| 0usize);
         let search = remember(|| TextFieldState::new("")).with(|state| *state);
         let chip_scroll = remember(|| ScrollState::new(0.0)).with(|state| *state);
-        let favorite_flags = favorites.get();
+        let favorite_flags = services.get().favorites.saved().collectAsState().get();
         let query = search.text().trim().to_lowercase();
         let selected_category = category.get().min(CATEGORIES.len() - 1);
         let visible: Vec<usize> = BODIES
@@ -351,7 +422,6 @@ pub fn ListScreen(
                 let visible_keys = visible.clone();
                 let visible_bodies = visible.clone();
                 let query = query.clone();
-                let favorite_flags = favorite_flags.clone();
                 let on_open = on_open.clone();
                 LazyColumn(
                     Modifier::empty().fill_max_size().padding_each(
@@ -422,7 +492,6 @@ pub fn ListScreen(
                                 }
                             });
                         } else {
-                            let favorite_flags = favorite_flags.clone();
                             scope.items(
                                 LazyItems::new(visible_bodies.len()).key(move |index| {
                                     visible_keys.get(index).copied().unwrap_or(index) as u64
@@ -431,18 +500,8 @@ pub fn ListScreen(
                                     let Some(&body_index) = visible_bodies.get(order) else {
                                         return;
                                     };
-                                    let body = &BODIES[body_index];
-                                    let is_favorite =
-                                        favorite_flags.get(body_index).copied().unwrap_or(false);
-                                    let toggle = move || {
-                                        let mut current = favorites.get();
-                                        if let Some(flag) = current.get_mut(body_index) {
-                                            *flag = !*flag;
-                                        }
-                                        favorites.set(current);
-                                    };
                                     let on_open = on_open.clone();
-                                    BodyCard(body, is_favorite, ambient, toggle, move || {
+                                    BodyCard(body_index, services, ambient, move || {
                                         on_open(body_index)
                                     });
                                 },
@@ -451,7 +510,44 @@ pub fn ListScreen(
                     },
                 );
                 HeaderBlurGradient();
+                if let Some(message) = toast.get() {
+                    Toast(message);
+                }
             },
         );
     });
+}
+
+/// How long a message from the screen's bus stays on screen.
+const TOAST_DURATION: Duration = Duration::from_millis(1_800);
+
+/// A message from the screen's bus, above the tab bar.
+#[composable]
+fn Toast(message: String) {
+    let colors = liquid_colors();
+    Box(
+        Modifier::empty()
+            .fill_max_size()
+            .padding_each(24.0, 0.0, 24.0, 104.0),
+        BoxSpec::default().content_alignment(Alignment::new(
+            HorizontalAlignment::CenterHorizontally,
+            VerticalAlignment::Bottom,
+        )),
+        move || {
+            let message = message.clone();
+            GlassSurface(Modifier::empty(), showcase_glass(colors, 18.0), move || {
+                Text(
+                    message.clone(),
+                    Modifier::empty().padding_each(16.0, 10.0, 16.0, 10.0),
+                    liquid_typography().subheadline.merge(&TextStyle {
+                        span_style: SpanStyle {
+                            color: Some(colors.label),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+                );
+            });
+        },
+    );
 }

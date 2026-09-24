@@ -2,10 +2,11 @@
 
 #[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
 mod app;
-#[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
-mod model;
+pub mod data;
+pub mod model;
 #[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
 mod motion;
+pub mod presentation;
 #[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
 mod screens;
 #[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
