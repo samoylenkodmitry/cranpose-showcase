@@ -156,7 +156,7 @@ fn SplitShell(state: ShellState) {
     });
     Row(
         Modifier::empty().fill_max_size(),
-        RowSpec::default(),
+        RowSpec::default().vertical_alignment(VerticalAlignment::CenterVertically),
         move || {
             Box(
                 Modifier::empty().width(LIST_PANE_WIDTH).fill_max_height(),

@@ -111,7 +111,9 @@ fn StatsGrid(body: &'static CelestialBody) {
         move || {
             Row(
                 Modifier::empty().fill_max_width(),
-                RowSpec::default().horizontal_arrangement(LinearArrangement::spaced_by(10.0)),
+                RowSpec::default()
+                    .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
+                    .vertical_alignment(VerticalAlignment::CenterVertically),
                 move || {
                     StatTile("DISTANCE", body.distance);
                     StatTile("DIAMETER", body.diameter);
@@ -119,7 +121,9 @@ fn StatsGrid(body: &'static CelestialBody) {
             );
             Row(
                 Modifier::empty().fill_max_width(),
-                RowSpec::default().horizontal_arrangement(LinearArrangement::spaced_by(10.0)),
+                RowSpec::default()
+                    .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
+                    .vertical_alignment(VerticalAlignment::CenterVertically),
                 move || {
                     StatTile("DAY LENGTH", body.day_length);
                     StatTile("YEAR LENGTH", body.year_length);
@@ -127,7 +131,9 @@ fn StatsGrid(body: &'static CelestialBody) {
             );
             Row(
                 Modifier::empty().fill_max_width(),
-                RowSpec::default().horizontal_arrangement(LinearArrangement::spaced_by(10.0)),
+                RowSpec::default()
+                    .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
+                    .vertical_alignment(VerticalAlignment::CenterVertically),
                 move || {
                     StatTile("MOONS", body.moons);
                     StatTile("GRAVITY", body.gravity_label);
@@ -261,7 +267,9 @@ fn RelatedRow(
                     .fill_max_width()
                     .horizontal_scroll(scroll, false)
                     .padding_each(20.0, 0.0, 20.0, 0.0),
-                RowSpec::default().horizontal_arrangement(LinearArrangement::spaced_by(14.0)),
+                RowSpec::default()
+                    .horizontal_arrangement(LinearArrangement::spaced_by(14.0))
+                    .vertical_alignment(VerticalAlignment::CenterVertically),
                 move || {
                     for &target in related {
                         let related_body = &BODIES[target];

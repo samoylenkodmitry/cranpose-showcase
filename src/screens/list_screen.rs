@@ -218,9 +218,11 @@ pub fn BodyCardContent(
                                 RowSpec::default()
                                     .vertical_alignment(VerticalAlignment::CenterVertically),
                                 move || {
-                                    Text(
+                                    // The tag keeps its width; a name too long
+                                    // for what is left ends in an ellipsis.
+                                    TextWithOptions(
                                         body.name,
-                                        Modifier::empty(),
+                                        Modifier::empty().weight_with_fill(1.0, false),
                                         liquid_typography().headline.merge(&TextStyle {
                                             span_style: SpanStyle {
                                                 color: Some(colors.label),
@@ -228,6 +230,11 @@ pub fn BodyCardContent(
                                             },
                                             ..Default::default()
                                         }),
+                                        TextOptions {
+                                            overflow: TextOverflow::Ellipsis,
+                                            max_lines: Some(1),
+                                            ..Default::default()
+                                        },
                                     );
                                     Box(Modifier::empty().width(8.0), BoxSpec::default(), || {});
                                     KindTag(body.kind);
@@ -456,7 +463,8 @@ pub fn ListScreen(
                                     .fill_max_width()
                                     .horizontal_scroll(chip_scroll, false),
                                 RowSpec::default()
-                                    .horizontal_arrangement(LinearArrangement::spaced_by(8.0)),
+                                    .horizontal_arrangement(LinearArrangement::spaced_by(8.0))
+                                    .vertical_alignment(VerticalAlignment::CenterVertically),
                                 move || {
                                     for (index, (label, _)) in CATEGORIES.iter().enumerate() {
                                         let category = category;
