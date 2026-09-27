@@ -103,7 +103,8 @@ fn GalleryBody() {
                         Row(
                             Modifier::empty(),
                             RowSpec::default()
-                                .horizontal_arrangement(LinearArrangement::spaced_by(16.0)),
+                                .horizontal_arrangement(LinearArrangement::spaced_by(16.0))
+                                .vertical_alignment(VerticalAlignment::CenterVertically),
                             move || {
                                 for body in chunk {
                                     PlanetTile(body, ambient);
