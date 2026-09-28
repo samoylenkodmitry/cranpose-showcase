@@ -92,6 +92,27 @@ cd dist && python3 -m http.server 8080
 ./ios/run-sim.sh
 ```
 
+## Local platform packages
+
+[Cranpose Build](https://github.com/samoylenkodmitry/cranpose-build) builds the
+same application locally for desktop, Android and iOS. The checked-in
+`CranposeBuild.toml` selects the iOS entry point, icon and Android ARM64 ABI.
+
+```console
+cranpose-build doctor --platform windows
+cranpose-build setup --platform windows
+cranpose-build build --platform windows
+cranpose-build run --platform android --device emulator-5554
+cranpose-build run --platform ios-sim --device <simulator-UDID>
+```
+
+Use `mac`, `linux` or their architecture variants for other desktop packages.
+The tool also appears in Cranpose Studio's **Build for a platform** section.
+Builds run on your computer; foreign desktop applications need their matching
+OS or VM to run. iOS requires macOS/Xcode, and physical iOS devices require your
+signing identity and provisioning profile. Android uses the project's existing
+Gradle signing configuration. Packages are not automatically store releases.
+
 ## Releases
 
 Tag `vX.Y.Z` when the Cargo, Android, and iOS versions match. GitHub Actions

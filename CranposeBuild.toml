@@ -1,0 +1,21 @@
+# Used by Cranpose Build and Studio's platform builds. App sources stay unchanged.
+[app]
+name = "Showcase Cranpose"
+identifier = "io.cranpose.showcase"
+
+[targets.ios]
+bin = "cranpose-showcase-ios"
+features = ["ios"]
+no_default_features = true
+
+[ios]
+plist = "ios/CranposeShowcase/Info.plist"
+resources = ["ios/CranposeShowcase/AppIcon.png"]
+
+[android]
+directory = "android"
+module = "app"
+
+# ARM64 phones and Apple Silicon emulators. Use x86_64 for an Intel emulator.
+[android.properties]
+showcaseAbi = "arm64-v8a"
