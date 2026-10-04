@@ -278,7 +278,7 @@ fn NoSelectionPane(state: ShellState) {
                 showcase_glass(colors, 24.0),
                 move || {
                     Column(
-                        Modifier::empty(),
+                        Modifier::empty().padding(28.0),
                         ColumnSpec::default()
                             .horizontal_alignment(HorizontalAlignment::CenterHorizontally)
                             .vertical_arrangement(LinearArrangement::spaced_by(10.0)),
