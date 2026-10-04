@@ -69,11 +69,11 @@ fn Hero(body: &'static CelestialBody, ambient: AmbientMotion) {
 fn StatTile(label: &'static str, value: &'static str) {
     let colors = liquid_colors();
     GlassSurface(
-        Modifier::empty().weight(1.0).padding(14.0),
+        Modifier::empty().weight(1.0),
         showcase_glass(colors, 16.0),
         move || {
             Column(
-                Modifier::empty().fill_max_width(),
+                Modifier::empty().fill_max_width().padding(14.0),
                 ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(5.0)),
                 move || {
                     Text(
@@ -113,7 +113,7 @@ fn StatsGrid(body: &'static CelestialBody) {
                 Modifier::empty().fill_max_width(),
                 RowSpec::default()
                     .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
-                    .vertical_alignment(VerticalAlignment::CenterVertically),
+                    .vertical_alignment(VerticalAlignment::Top),
                 move || {
                     StatTile("DISTANCE", body.distance);
                     StatTile("DIAMETER", body.diameter);
@@ -123,7 +123,7 @@ fn StatsGrid(body: &'static CelestialBody) {
                 Modifier::empty().fill_max_width(),
                 RowSpec::default()
                     .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
-                    .vertical_alignment(VerticalAlignment::CenterVertically),
+                    .vertical_alignment(VerticalAlignment::Top),
                 move || {
                     StatTile("DAY LENGTH", body.day_length);
                     StatTile("YEAR LENGTH", body.year_length);
@@ -133,7 +133,7 @@ fn StatsGrid(body: &'static CelestialBody) {
                 Modifier::empty().fill_max_width(),
                 RowSpec::default()
                     .horizontal_arrangement(LinearArrangement::spaced_by(10.0))
-                    .vertical_alignment(VerticalAlignment::CenterVertically),
+                    .vertical_alignment(VerticalAlignment::Top),
                 move || {
                     StatTile("MOONS", body.moons);
                     StatTile("GRAVITY", body.gravity_label);
@@ -168,11 +168,11 @@ fn GravityPlayground(body: &'static CelestialBody) {
             let weight = earth_weight.get();
             let here = weight * body.gravity_g;
             GlassSurface(
-                Modifier::empty().fill_max_width().padding(16.0),
+                Modifier::empty().fill_max_width(),
                 showcase_glass(colors, 18.0),
                 move || {
                     Column(
-                        Modifier::empty().fill_max_width(),
+                        Modifier::empty().fill_max_width().padding(16.0),
                         ColumnSpec::default()
                             .vertical_arrangement(LinearArrangement::spaced_by(10.0)),
                         move || {

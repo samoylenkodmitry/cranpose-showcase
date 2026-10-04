@@ -10,6 +10,7 @@
 //! `cargo run --bin robot-app-screens --features robot-preview`
 //!
 //! `SHOWCASE_ROBOT_OUT_DIR` picks the output directory (default `/tmp`).
+//! `SHOWCASE_ROBOT_WIDTH` picks the phone width (default 412 logical pixels).
 
 #[path = "../src/app.rs"]
 mod app;
@@ -193,8 +194,16 @@ fn main() {
     let _ = env_logger::try_init();
     let out_dir = std::env::var("SHOWCASE_ROBOT_OUT_DIR").unwrap_or_else(|_| "/tmp".to_string());
     let headless = std::env::var("SHOWCASE_ROBOT_HEADLESS").as_deref() != Ok("0");
+    let width = std::env::var("SHOWCASE_ROBOT_WIDTH")
+        .map(|value| {
+            value
+                .parse()
+                .expect("SHOWCASE_ROBOT_WIDTH must be a number")
+        })
+        .unwrap_or(412);
 
     app::create_app()
+        .with_size(width, 915)
         .with_headless(headless)
         .with_test_driver(move |robot: Robot| {
             std::thread::sleep(Duration::from_millis(500));
@@ -212,9 +221,32 @@ fn main() {
             std::thread::sleep(Duration::from_millis(650));
             robot.pump_frames(6).expect("settle Earth detail");
             let detail = save(&robot, &out_dir, "app-earth-detail.png");
+            for (left, right) in [
+                ("DISTANCE", "DIAMETER"),
+                ("DAY LENGTH", "YEAR LENGTH"),
+                ("MOONS", "GRAVITY"),
+            ] {
+                let (_, left_y, _, _) = robot
+                    .find_text_bounds_exact(left)
+                    .expect("query left stat")
+                    .expect("left stat is present");
+                let (_, right_y, _, _) = robot
+                    .find_text_bounds_exact(right)
+                    .expect("query right stat")
+                    .expect("right stat is present");
+                assert!(
+                    (left_y - right_y).abs() < 1.0,
+                    "stat labels must stay aligned when a value wraps: {left}={left_y}, {right}={right_y}"
+                );
+            }
             assert_list_leaves_composition_on_detail(&robot);
             assert_detail_planet_rotates(&robot, &detail);
             assert_ambient_motion_does_not_recompose(&robot, "detail");
+            robot
+                .drag(200.0, 700.0, 200.0, 300.0)
+                .expect("scroll detail to gravity and related worlds");
+            robot.pump_frames(8).expect("settle detail scroll");
+            save(&robot, &out_dir, "app-earth-detail-scrolled.png");
             robot.click(28.0, 25.0).expect("return to body list");
             std::thread::sleep(Duration::from_millis(650));
             robot.pump_frames(6).expect("settle body list");
@@ -255,6 +287,7 @@ fn main() {
                 .expect("release Saved tab");
             robot.pump_frames(4).expect("settle Saved tab");
             assert_ambient_motion_does_not_recompose(&robot, "empty saved list");
+            save(&robot, &out_dir, "app-saved-empty.png");
 
             robot.exit().expect("exit app screen robot");
         })
