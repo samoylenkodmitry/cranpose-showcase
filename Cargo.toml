@@ -113,6 +113,10 @@ wasm-bindgen-futures = "0.4.79"
 
 [workspace]
 
+[profile.release]
+lto = true
+codegen-units = 1
+
 [profile.release-small]
 inherits = "release"
 opt-level = "z"
