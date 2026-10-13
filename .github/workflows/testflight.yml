@@ -1,0 +1,80 @@
+name: TestFlight
+
+# Builds the iPhone app, with the Apple Watch app in it, signs it for the
+# App Store and uploads it to TestFlight. Run it by hand from the Actions tab.
+# It needs the secrets that docs/testflight.md lists, and stops at once with
+# their names when any is missing.
+on:
+  workflow_dispatch:
+    inputs:
+      watch:
+        description: Put the Apple Watch app in the upload
+        type: boolean
+        default: true
+      build-number:
+        description: Build number; empty means this run's number
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  upload:
+    name: Upload to TestFlight
+    # The image with Xcode 27, whose watchOS 27 SDK the App Store asks of an
+    # arm64 watch app.
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      IOS_DISTRIBUTION_CERTIFICATE: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+      IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+      IOS_APP_STORE_PROFILE: ${{ secrets.IOS_APP_STORE_PROFILE }}
+      WATCH_APP_STORE_PROFILE: ${{ secrets.WATCH_APP_STORE_PROFILE }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID }}
+      WITH_WATCH: ${{ inputs.watch && '1' || '0' }}
+      BUILD_NUMBER: ${{ inputs.build-number || github.run_number }}
+    steps:
+      - name: Check the secrets
+        run: |
+          required=(IOS_DISTRIBUTION_CERTIFICATE IOS_DISTRIBUTION_CERTIFICATE_PASSWORD
+            IOS_APP_STORE_PROFILE APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_PRIVATE_KEY)
+          if [ "$WITH_WATCH" = 1 ]; then
+            required+=(WATCH_APP_STORE_PROFILE)
+          fi
+          missing=()
+          for name in "${required[@]}"; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=TestFlight secrets are missing::Add these repository secrets: ${missing[*]}. docs/testflight.md says how to make each one."
+            exit 1
+          fi
+          case "$BUILD_NUMBER" in
+            ''|*[!0-9]*) echo "::error::The build number is a whole number, like 42, not '$BUILD_NUMBER'"; exit 1 ;;
+          esac
+      - uses: actions/checkout@v6
+      - name: Show Xcode
+        run: xcodebuild -version && xcrun --sdk watchos --show-sdk-version
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-watchos
+      - uses: Swatinem/rust-cache@v2
+      # The watchOS packager refuses a folder that the cache restored in part.
+      - name: Remove the watch build the cache restored
+        run: rm -rf target/watchos
+      - name: Build the app
+        run: PROFILE=release ./ios/build-app.sh aarch64-apple-ios
+      - name: Sign it and upload it
+        run: ./ios/testflight.sh target/aarch64-apple-ios/release/CranposeShowcase.app "$BUILD_NUMBER" "$RUNNER_TEMP/CranposeShowcase.ipa"

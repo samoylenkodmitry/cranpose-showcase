@@ -32,4 +32,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Showcase Cranpose"
+// The phone and tablet app, and the Wear OS app.
 include(":app")
+include(":wear")

@@ -14,6 +14,18 @@ publish = false
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "-ocimfs=100", "--all-features"]
 
+# The Apple Watch app, built by Cranpose's watchOS packager (see
+# `watchos/build.py`). It runs `watch::WatchShowcase`, and the iPhone app
+# carries it in its `Watch` folder: its bundle id is the iPhone app's with
+# `.watchkitapp` after it. It also runs without the iPhone app.
+[package.metadata.cranpose.watchos]
+entry = "watch::WatchShowcase"
+bundle-id = "io.cranpose.showcase.watchkitapp"
+companion = "io.cranpose.showcase"
+name = "Showcase"
+icon = "assets/app-icon-1024.png"
+info-plist = { WKRunsIndependentlyOfCompanionApp = true }
+
 [lib]
 crate-type = ["cdylib", "staticlib", "rlib"]
 path = "src/lib.rs"
@@ -66,18 +78,21 @@ android = ["cranpose/android"]
 ios = ["renderer-wgpu", "cranpose/ios"]
 web = ["cranpose/web", "dep:wasm-bindgen", "dep:wasm-logger"]
 logging = ["dep:env_logger"]
+# Makes the watch app the root composable: the Wear OS app (`android/wear`)
+# and the desktop preview of the watch app (`cargo run --features watch`).
+watch = []
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-coroflow = "0.9.6"
-cranpose = "0.9.6"
-cranpose-core = "0.9.6"
-cranpose-animation = "0.9.6"
-cranpose-coroflow = "0.9.6"
-cranpose-foundation = "0.9.6"
-cranpose-navigation = "0.9.6"
-cranpose-ui = "0.9.6"
-cranpose-ui-graphics = "0.9.6"
+coroflow = "0.9.32"
+cranpose = "0.9.32"
+cranpose-core = "0.9.32"
+cranpose-animation = "0.9.32"
+cranpose-coroflow = "0.9.32"
+cranpose-foundation = "0.9.32"
+cranpose-navigation = "0.9.32"
+cranpose-ui = "0.9.32"
+cranpose-ui-graphics = "0.9.32"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
@@ -127,4 +142,4 @@ opt-level = "z"
 lto = "fat"
 
 [dev-dependencies]
-cranpose-testing = "0.9.6"
+cranpose-testing = "0.9.32"

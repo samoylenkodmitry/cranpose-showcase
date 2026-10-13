@@ -1,20 +1,44 @@
 #![deny(unsafe_code)]
 
-#[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
+// The phone app's own modules. An Android build with the `watch` feature is
+// the Wear OS app, which leaves them out.
+#[cfg(any(
+    all(target_os = "android", not(feature = "watch")),
+    all(feature = "web", target_arch = "wasm32")
+))]
 mod app;
 pub mod data;
 pub mod model;
-#[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
+#[cfg(any(
+    all(target_os = "android", not(feature = "watch")),
+    all(feature = "web", target_arch = "wasm32")
+))]
 mod motion;
 pub mod presentation;
-#[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
+#[cfg(any(
+    all(target_os = "android", not(feature = "watch")),
+    all(feature = "web", target_arch = "wasm32")
+))]
 mod screens;
-#[cfg(any(target_os = "android", all(feature = "web", target_arch = "wasm32")))]
+pub mod watch;
+#[cfg(any(
+    all(target_os = "android", not(feature = "watch")),
+    all(feature = "web", target_arch = "wasm32")
+))]
 mod widgets;
 
+// The phone and tablet app.
+#[cfg(not(feature = "watch"))]
 cranpose::android_main! {
     launcher: app::create_app(),
     content: app::ShowcaseApp,
+}
+
+// The Wear OS app (`android/wear` turns the `watch` feature on).
+#[cfg(feature = "watch")]
+cranpose::android_main! {
+    launcher: watch::create_watch_app(),
+    content: watch::WatchShowcase,
 }
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]

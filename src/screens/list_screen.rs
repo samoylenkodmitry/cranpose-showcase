@@ -472,7 +472,7 @@ pub fn ListScreen(
                                             Modifier::empty(),
                                             selected_category == index,
                                             move || category.set(index),
-                                            *label,
+                                            (*label).into(),
                                         );
                                     }
                                 },
