@@ -44,6 +44,7 @@ to start a Cranpose app: every target below has its commands and a CI job.
 | iPhone and iPad | a Mac | `PROFILE=release WITH_WATCH=1 ./ios/build-app.sh aarch64-apple-ios` | `target/aarch64-apple-ios/release/CranposeShowcase.app`, with the watch app inside |
 | Apple Watch simulator | a Mac | `python3 watchos/build.py --smoke` | `target/watchos/simulator/CranposeWatch.app` and a screenshot in `target/watchos/simulator/evidence` |
 | Apple Watch | a Mac | `python3 watchos/build.py --target device` | `target/watchos/device/CranposeWatch.app`, unsigned |
+| macOS, iPhone and iPad from Linux or Windows | GitHub Actions | `cranpose-build build --platform ios --on github` | `dist/cranpose/ios/debug/build-*/application.ipa`; see [Platform packages](#platform-packages) |
 | TestFlight | GitHub Actions | the **TestFlight** workflow | a build in TestFlight; see [docs/testflight.md](docs/testflight.md) |
 | The watch app on the desktop | any system | `cargo run --features watch` | a 227 by 227 point window with the watch app |
 
@@ -184,10 +185,10 @@ virtual time with `TestScheduler`. `tests/body_card.rs` composes the real
 `BodyCard` inside `ProvideViewModelStore` with a store seeded with a view
 model built from a fake fact source.
 
-## Local platform packages
+## Platform packages
 
 [Cranpose Build](https://github.com/samoylenkodmitry/cranpose-build) builds the
-same application locally for desktop, Android and iOS. The checked-in
+same application for desktop, Android and iOS. The checked-in
 `CranposeBuild.toml` selects the iOS entry point, icon and Android ARM64 ABI.
 
 ```console
@@ -201,9 +202,28 @@ cranpose-build run --platform ios-sim --device <simulator-UDID>
 Use `mac`, `linux` or their architecture variants for other desktop packages.
 The tool also appears in Cranpose Studio's **Build for a platform** section.
 Builds run on your computer; foreign desktop applications need their matching
-OS or VM to run. iOS requires macOS/Xcode, and physical iOS devices require your
-signing identity and provisioning profile. Android uses the project's existing
-Gradle signing configuration. Packages are not automatically store releases.
+OS or VM to run. Android uses the project's existing Gradle signing
+configuration. Packages are not automatically store releases.
+
+On Linux or Windows, build the Apple packages on a GitHub macOS runner. Push your
+copy of the starter to GitHub, sign in with `gh auth login`, then:
+
+```console
+cranpose-build build --platform mac --on github
+cranpose-build build --platform ios --on github
+cranpose-build run --platform ios --on github --device <iPhone-UDID>
+```
+
+The tool sends a snapshot of your working tree to a temporary branch, starts
+`.github/workflows/cranpose-build.yml` on it and downloads the package into
+`dist/cranpose/<platform>/<profile>`. Runners are free for public repositories.
+The macOS package is an ad-hoc signed `.app`; another Mac opens it after its owner
+chooses **Open Anyway** in **System Settings > Privacy & Security**. The iOS
+package is an unsigned `.ipa`. [xtool](https://xtool.sh) signs it with your Apple
+account and installs it on a USB iPhone (on Windows, inside WSL); with a free Apple
+ID the app works for 7 days. Other people can sign the same `.ipa` with their own
+Apple account through AltStore, SideStore or xtool. The iOS simulator runs only on a
+Mac.
 
 ## CI and releases
 
