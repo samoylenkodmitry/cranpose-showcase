@@ -46,5 +46,19 @@
     <array>
         <string>UIInterfaceOrientationPortrait</string>
     </array>
+    <!-- The App Store takes an iPad app that shares the screen with other
+         apps only when it turns to every orientation. Wide windows get the
+         list and detail side by side. -->
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <!-- The app uses no encryption of its own, so App Store Connect asks no
+         export compliance question for a build. Change this if yours does. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 </dict>
 </plist>
