@@ -2,6 +2,8 @@
 [app]
 name = "Showcase Cranpose"
 identifier = "io.cranpose.showcase"
+# The page's icon; desktop bundles carry it too.
+assets = ["assets/app-icon.png"]
 
 [targets.ios]
 bin = "cranpose-showcase-ios"
