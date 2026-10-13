@@ -69,15 +69,15 @@ logging = ["dep:env_logger"]
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-coroflow = "0.9.6"
-cranpose = "0.9.6"
-cranpose-core = "0.9.6"
-cranpose-animation = "0.9.6"
-cranpose-coroflow = "0.9.6"
-cranpose-foundation = "0.9.6"
-cranpose-navigation = "0.9.6"
-cranpose-ui = "0.9.6"
-cranpose-ui-graphics = "0.9.6"
+coroflow = "0.9.32"
+cranpose = "0.9.32"
+cranpose-core = "0.9.32"
+cranpose-animation = "0.9.32"
+cranpose-coroflow = "0.9.32"
+cranpose-foundation = "0.9.32"
+cranpose-navigation = "0.9.32"
+cranpose-ui = "0.9.32"
+cranpose-ui-graphics = "0.9.32"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
@@ -127,4 +127,4 @@ opt-level = "z"
 lto = "fat"
 
 [dev-dependencies]
-cranpose-testing = "0.9.6"
+cranpose-testing = "0.9.32"
