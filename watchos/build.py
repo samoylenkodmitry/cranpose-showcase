@@ -45,6 +45,19 @@ def main():
         parser.error('--smoke needs --target simulator')
     if sys.version_info < (3, 11):
         parser.error('the watchOS packager needs Python 3.11 or newer')
+    if (args.target == 'device' and sys.platform == 'darwin'
+            and not any(arg.startswith('--deployment-target') for arg in packager_args)):
+        # The packager builds a device app for watchOS 27, the first version
+        # for which the App Store takes an arm64-only watch app. An older
+        # Xcode has no watchOS 27 SDK, so the app is built for the SDK's own
+        # version: it installs on a watch, and the App Store refuses it.
+        sdk = subprocess.check_output(['xcrun', '--sdk', 'watchos', '--show-sdk-version'],
+                                      text=True).strip()
+        major = int(sdk.split('.')[0])
+        if major < 27:
+            print(f'watchOS SDK {sdk}: building for watchOS {major}.0; '
+                  'the App Store needs Xcode 27 or newer', flush=True)
+            packager_args += ['--deployment-target', f'{major}.0']
     host = cranpose_dir() / 'watchos'
     output = ROOT / 'target/watchos' / args.target
     subprocess.run([sys.executable, host / 'build.py', '--manifest', ROOT / 'Cargo.toml',
