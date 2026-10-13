@@ -25,7 +25,7 @@ const HERO_SIDE: f32 = 96.0;
 /// How far below the centre line the page starts.
 const HERO_DROP: f32 = 20.0;
 /// Space between a line of text and the edges of the list.
-const TEXT_SIDE_PADDING: f32 = 8.0;
+const TEXT_SIDE_PADDING: f32 = 12.0;
 
 /// Body `index`'s page. `on_back` returns to the list.
 ///
