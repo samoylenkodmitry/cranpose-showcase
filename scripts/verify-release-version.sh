@@ -12,9 +12,10 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cargo_version="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' "$root/Cargo.toml" | head -1)"
 android_version="$(sed -n 's/^[[:space:]]*versionName = "\([^"]*\)"$/\1/p' "$root/android/app/build.gradle.kts" | head -1)"
+wear_version="$(sed -n 's/^[[:space:]]*versionName = "\([^"]*\)"$/\1/p' "$root/android/wear/build.gradle.kts" | head -1)"
 ios_version="$(awk '/<key>CFBundleShortVersionString<\/key>/ { getline; sub(/.*<string>/, ""); sub(/<\/string>.*/, ""); print; exit }' "$root/ios/CranposeShowcase/Info.plist")"
 
-for entry in "Cargo:$cargo_version" "Android:$android_version" "iOS:$ios_version"; do
+for entry in "Cargo:$cargo_version" "Android:$android_version" "Wear OS:$wear_version" "iOS:$ios_version"; do
   name="${entry%%:*}"
   actual="${entry#*:}"
   if [[ "$actual" != "$version" ]]; then

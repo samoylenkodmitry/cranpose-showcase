@@ -40,7 +40,7 @@ jobs:
             executable: cranpose-showcase
             extension: tar.gz
           - platform: macos-aarch64
-            runner: macos-14
+            runner: macos-15
             target: aarch64-apple-darwin
             executable: cranpose-showcase
             extension: tar.gz
@@ -79,8 +79,33 @@ jobs:
         with:
           files: release-assets/*
 
+  web:
+    name: Web bundle
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked
+      - name: Build the web bundle
+        run: ./build-web.sh
+      - name: Package the web bundle
+        env:
+          VERSION: ${{ needs.create-release.outputs.version }}
+        run: |
+          mkdir -p release-assets
+          (cd dist && zip -qr "../release-assets/cranpose-showcase-${VERSION}-web.zip" .)
+      - name: Publish web artifact
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release-assets/*
+          fail_on_unmatched_files: true
+
   android:
-    name: Android APK
+    name: Android and Wear OS APKs
     needs: create-release
     runs-on: ubuntu-latest
     steps:
@@ -92,24 +117,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Android NDK
-        shell: bash
-        run: |
-          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:?Android SDK is unavailable}}"
-          sdkmanager="$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)"
-          test -n "$sdkmanager" || { echo "Android sdkmanager is unavailable" >&2; exit 1; }
-          set +o pipefail
-          yes | "$sdkmanager" --licenses >/dev/null
-          license_status=${PIPESTATUS[1]}
-          set -o pipefail
-          test "$license_status" -eq 0
-          "$sdkmanager" --install "ndk;28.2.13676358"
-          cargo install cargo-ndk --locked
-          echo "ANDROID_NDK_HOME=$sdk_root/ndk/28.2.13676358" >> "$GITHUB_ENV"
-      - name: Build Android release APK
+      - name: Install the Android NDK and cargo-ndk
+        run: ./scripts/install-android-ndk.sh
+      - name: Build the release APKs
         working-directory: android
-        run: ./gradlew --no-daemon :app:assembleRelease
-      - name: Stage Android APK
+        run: ./gradlew --no-daemon :app:assembleRelease :wear:assembleRelease
+      - name: Stage the APKs
         shell: bash
         env:
           VERSION: ${{ needs.create-release.outputs.version }}
@@ -119,7 +132,11 @@ jobs:
             name="$(basename "$apk" .apk)"
             cp "$apk" "release-assets/cranpose-showcase-${VERSION}-android-${name}.apk"
           done
-      - name: Publish Android artifact
+          for apk in android/wear/build/outputs/apk/release/*.apk; do
+            name="$(basename "$apk" .apk)"
+            cp "$apk" "release-assets/cranpose-showcase-${VERSION}-wearos-${name#wear-}.apk"
+          done
+      - name: Publish Android artifacts
         uses: softprops/action-gh-release@v3
         with:
           files: release-assets/*
@@ -128,15 +145,17 @@ jobs:
   ios:
     name: iOS device and simulator
     needs: create-release
-    runs-on: macos-14
+    # The image with Xcode 27, whose watchOS 27 SDK the App Store asks of an
+    # arm64 watch app.
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,aarch64-apple-watchos
       - name: Build iOS app bundles
         run: |
-          PROFILE=release ./ios/build-app.sh aarch64-apple-ios
+          PROFILE=release WITH_WATCH=1 ./ios/build-app.sh aarch64-apple-ios
           PROFILE=release ./ios/build-app.sh aarch64-apple-ios-sim
       - name: Package iOS artifacts
         shell: bash
@@ -151,3 +170,30 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: release-assets/*
+
+  watchos:
+    name: Apple Watch device and simulator
+    needs: create-release
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-watchos,aarch64-apple-watchos-sim
+      - name: Build the watch apps
+        run: |
+          python3 watchos/build.py --target device
+          python3 watchos/build.py --target simulator
+      - name: Package the watch apps
+        shell: bash
+        env:
+          VERSION: ${{ needs.create-release.outputs.version }}
+        run: |
+          mkdir -p release-assets
+          (cd target/watchos/device && zip -qry "$GITHUB_WORKSPACE/release-assets/cranpose-showcase-${VERSION}-watchos-unsigned.app.zip" CranposeWatch.app)
+          (cd target/watchos/simulator && zip -qry "$GITHUB_WORKSPACE/release-assets/cranpose-showcase-${VERSION}-watchos-simulator.app.zip" CranposeWatch.app)
+      - name: Publish watch artifacts
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release-assets/*
+          fail_on_unmatched_files: true

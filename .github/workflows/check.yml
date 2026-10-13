@@ -1,23 +1,42 @@
 name: Check
+
+# Builds every target on every pull request: desktop (Linux, macOS, Windows),
+# web, Android phone, Wear OS, iOS and Apple Watch. Each job keeps what it
+# built as a workflow artifact for a week.
 on:
   pull_request:
   push:
     branches: [main]
+
 permissions:
   contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  rust:
+  desktop:
+    name: Desktop ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-15, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --locked --all-targets
+      - name: Test
+        run: cargo test --locked --all-targets
+      - name: Build the desktop preview of the watch app
+        run: cargo build --locked --features watch --bin cranpose-showcase
+
   web:
+    name: Web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -25,4 +44,116 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - run: cargo check --locked --no-default-features --features web,renderer-wgpu --target wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked
+      - name: Build the web bundle
+        run: ./build-web.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: dist
+          retention-days: 7
+
+  android:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android phone APK
+            module: app
+            abi: arm64-v8a
+            rust-target: aarch64-linux-android
+          - name: Wear OS APK
+            module: wear
+            abi: armeabi-v7a
+            rust-target: armv7-linux-androideabi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.module }}
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install the Android NDK and cargo-ndk
+        run: ./scripts/install-android-ndk.sh
+      - name: Build the debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon :${{ matrix.module }}:assembleDebug -PshowcaseAbi=${{ matrix.abi }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module == 'app' && 'android-phone' || 'wear-os' }}
+          path: android/${{ matrix.module }}/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  ios:
+    name: iOS simulator and device
+    # The image with Xcode 27, whose watchOS 27 SDK the App Store asks of an
+    # arm64 watch app.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode
+        run: xcodebuild -version && xcrun --sdk watchos --show-sdk-version
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,aarch64-apple-watchos
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the simulator app
+        run: ./ios/build-app.sh aarch64-apple-ios-sim
+      # The device app with the Apple Watch app inside, as the TestFlight
+      # workflow builds it, then packed by the same script with an ad hoc
+      # signature in place of the App Store one.
+      - name: Build the device app with the watch app
+        run: WITH_WATCH=1 ./ios/build-app.sh aarch64-apple-ios
+      - name: Pack the device app as the TestFlight workflow does
+        run: python3 ios/ipa.py target/aarch64-apple-ios/debug/CranposeShowcase.app --build "$GITHUB_RUN_NUMBER" --ad-hoc --output artifacts/CranposeShowcase-unsigned.ipa
+      - name: Keep the simulator app
+        run: cd target/aarch64-apple-ios-sim/debug && zip -qry "$GITHUB_WORKSPACE/artifacts/CranposeShowcase-simulator.app.zip" CranposeShowcase.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+  watchos:
+    name: Apple Watch simulator and device
+    # The image with Xcode 27, whose watchOS 27 SDK the App Store asks of an
+    # arm64 watch app.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode
+        run: xcodebuild -version && xcrun --sdk watchos --show-sdk-version
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-watchos,aarch64-apple-watchos-sim
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the simulator app, launch it and take a screenshot
+        run: python3 watchos/build.py --target simulator --smoke
+      - name: Build the device app
+        run: python3 watchos/build.py --target device
+      - name: Keep the apps and the screenshot
+        if: always()
+        run: |
+          mkdir -p artifacts
+          for target in simulator device; do
+            if [ -d "target/watchos/$target/CranposeWatch.app" ]; then
+              (cd "target/watchos/$target" && zip -qry "$GITHUB_WORKSPACE/artifacts/CranposeWatch-$target.app.zip" CranposeWatch.app)
+            fi
+          done
+          cp -R target/watchos/simulator/evidence artifacts/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apple-watch
+          path: artifacts
+          retention-days: 7
