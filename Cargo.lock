@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "cranpose-showcase"
-version = "0.1.27"
+version = "0.1.28"
 dependencies = [
  "console_error_panic_hook",
  "coroflow",
