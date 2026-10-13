@@ -72,7 +72,9 @@ jobs:
           targets: aarch64-apple-ios,aarch64-apple-watchos
       - uses: Swatinem/rust-cache@v2
       # The watchOS packager refuses a folder that the cache restored in part.
+      - name: Remove the watch build the cache restored
+        run: rm -rf target/watchos
       - name: Build the app
-        run: rm -rf target/watchos && PROFILE=release ./ios/build-app.sh aarch64-apple-ios
+        run: PROFILE=release ./ios/build-app.sh aarch64-apple-ios
       - name: Sign it and upload it
         run: ./ios/testflight.sh target/aarch64-apple-ios/release/CranposeShowcase.app "$BUILD_NUMBER" "$RUNNER_TEMP/CranposeShowcase.ipa"

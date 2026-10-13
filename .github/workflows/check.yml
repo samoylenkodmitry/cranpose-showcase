@@ -118,8 +118,10 @@ jobs:
       # workflow builds it, then packed by the same script with an ad hoc
       # signature in place of the App Store one.
       # The watchOS packager refuses a folder that the cache restored in part.
+      - name: Remove the watch build the cache restored
+        run: rm -rf target/watchos
       - name: Build the device app with the watch app
-        run: rm -rf target/watchos && WITH_WATCH=1 ./ios/build-app.sh aarch64-apple-ios
+        run: WITH_WATCH=1 ./ios/build-app.sh aarch64-apple-ios
       - name: Pack the device app as the TestFlight workflow does
         run: python3 ios/ipa.py target/aarch64-apple-ios/debug/CranposeShowcase.app --build "$GITHUB_RUN_NUMBER" --ad-hoc --output artifacts/CranposeShowcase-unsigned.ipa
       - name: Keep the simulator app
