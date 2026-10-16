@@ -439,7 +439,7 @@ pub fn ListScreen(
                     ),
                     list_state,
                     LazyColumnSpec::default()
-                        .content_padding(100.0, 128.0)
+                        .content_padding(PaddingValues::new(0.0, 100.0, 0.0, 128.0))
                         .vertical_arrangement(LinearArrangement::spaced_by(14.0)),
                     move |scope| {
                         scope.item(move || {
