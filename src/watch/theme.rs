@@ -63,7 +63,10 @@ pub fn kind_color(kind: BodyKind) -> Color {
 
 /// How every list of the watch app is laid out.
 pub fn list_spec() -> WearScalingLazyColumnSpec {
-    WearScalingLazyColumnSpec::default().content_padding(LIST_SIDE_PADDING, LIST_END_PADDING)
+    WearScalingLazyColumnSpec::default().content_padding(PaddingValues::symmetric(
+        LIST_SIDE_PADDING,
+        LIST_END_PADDING,
+    ))
 }
 
 /// The screen around a list: its scroll indicator stays on screen, so a still
