@@ -94,8 +94,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - name: Install wasm-pack
-        run: cargo install wasm-pack --locked
+      - uses: ./.github/actions/web-tools
       - name: Build the web bundle
         run: ./build-web.sh
       - name: Package the web bundle
