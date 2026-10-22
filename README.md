@@ -55,12 +55,13 @@ default), `armeabi-v7a` for most Wear OS watches. Install an APK with
 
 ## First build
 
-You need nothing but Rust and a C toolchain for the desktop app.
+The desktop app needs Rust and a C toolchain.
 
 1. Install the C toolchain. On macOS run `xcode-select --install`. On Ubuntu
-   or Debian run `sudo apt install build-essential`. On Windows install
-   **Visual Studio Build Tools** with **Desktop development with C++**; the
-   Rust installer offers to do it.
+   or Debian run `sudo apt install build-essential`. On Windows x64 install
+   **Visual Studio Build Tools** with **Desktop development with C++** and the
+   ATL component. [Windows build tools](#windows-build-tools) lists the
+   components and the commands.
 2. Install Rust with rustup from <https://rustup.rs>. On macOS and Linux:
 
    ```sh
@@ -103,6 +104,51 @@ Each other target needs some more tools:
   Xcode project is involved: the scripts build the apps from the command line.
 - **A real iPhone or Apple Watch**: an Apple Developer account and signing;
   [docs/testflight.md](docs/testflight.md) goes through it for TestFlight.
+
+### Windows build tools
+
+On Windows x64, Rust's MSVC toolchain links with the C++ components of Visual
+Studio. Install Visual Studio 2022 or newer. The Build Tools edition is enough.
+Select these components:
+
+- MSVC C++ build tools, `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`.
+- A Windows 10 or 11 SDK, for example `Microsoft.VisualStudio.Component.Windows11SDK.26100`.
+- C++ ATL, shown in the installer as **C++ ATL for x64/x86 (Latest MSVC)**,
+  `Microsoft.VisualStudio.Component.VC.ATL`.
+
+The workload **Desktop development with C++** with its recommended components
+covers the first two. Select ATL separately. The Windows x64 renderer links
+Microsoft's DirectX shader compiler, and that library needs `atls.lib` from the
+ATL component. A build without it stops with this error:
+
+```text
+LINK : fatal error LNK1104: cannot open file 'atls.lib'
+```
+
+Windows on ARM64 needs no ATL. To install the Build Tools with ATL on a PC that
+has no Visual Studio, run this command in PowerShell:
+
+```powershell
+winget install --id Microsoft.VisualStudio.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --add Microsoft.VisualStudio.Component.VC.ATL"
+```
+
+To add ATL to an installed Visual Studio, first read its installation path:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+```
+
+Then run the installer's modify command with that path in place of
+`<installation path>`. The installer asks for administrator rights.
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe" modify --installPath "<installation path>" --add Microsoft.VisualStudio.Component.VC.ATL --passive --norestart
+```
+
+In the Visual Studio Installer window, choose **Modify**, open **Individual
+components** and tick **C++ ATL for x64/x86 (Latest MSVC)**. The Cranpose guide
+covers the same steps and the cargo-xwin setting for cross builds in
+[Windows build tools](https://github.com/samoylenkodmitry/Cranpose/blob/main/docs/guide.md#windows-build-tools).
 
 ## What it demonstrates
 
