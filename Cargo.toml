@@ -1,6 +1,6 @@
 [package]
 name = "cranpose-showcase"
-version = "0.1.31"
+version = "0.1.32"
 edition = "2021"
 description = "A cross-platform showcase of the Cranpose UI framework"
 license = "Apache-2.0"
@@ -84,15 +84,15 @@ watch = []
 robot-preview = ["desktop", "renderer-wgpu", "logging", "cranpose/robot", "dep:image"]
 
 [dependencies]
-coroflow = "0.17.1"
-cranpose = "0.17.1"
-cranpose-core = "0.17.1"
-cranpose-animation = "0.17.1"
-cranpose-coroflow = "0.17.1"
-cranpose-foundation = "0.17.1"
-cranpose-navigation = "0.17.1"
-cranpose-ui = "0.17.1"
-cranpose-ui-graphics = "0.17.1"
+coroflow = "0.17.2"
+cranpose = "0.17.2"
+cranpose-core = "0.17.2"
+cranpose-animation = "0.17.2"
+cranpose-coroflow = "0.17.2"
+cranpose-foundation = "0.17.2"
+cranpose-navigation = "0.17.2"
+cranpose-ui = "0.17.2"
+cranpose-ui-graphics = "0.17.2"
 log = "0.4"
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-logger = { version = "0.2", optional = true }
@@ -142,4 +142,4 @@ opt-level = "z"
 lto = "fat"
 
 [dev-dependencies]
-cranpose-testing = "0.17.1"
+cranpose-testing = "0.17.2"
