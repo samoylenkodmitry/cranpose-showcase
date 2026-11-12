@@ -66,7 +66,7 @@ pub fn WatchShowcase() {
     let list_position = rememberWearScalingListState(CentreAnchor::default());
     // `--body=saturn` at launch opens that body's page over the list, for
     // screenshots and for checks of one page.
-    LaunchedEffect((), move |_| {
+    LaunchedEffect((), move |_| async move {
         if let Some(index) = launch_body() {
             nav.navigate(WatchRoute::Body(index));
         }

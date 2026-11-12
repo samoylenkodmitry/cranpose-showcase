@@ -39,8 +39,8 @@ android {
         targetSdk = 36
         // Play numbers every build of one application id in one sequence,
         // so the watch build adds a million to the phone's version code.
-        versionCode = 1_000_132
-        versionName = "0.1.32"
+        versionCode = 1_000_133
+        versionName = "0.1.33"
     }
 
     // The phone app's launcher icon.

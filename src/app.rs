@@ -72,11 +72,7 @@ impl ShellState {
 #[composable]
 pub fn ShowcaseApp() {
     LiquidTheme(
-        LiquidThemeSpec {
-            scheme: SchemeMode::Dark,
-            accent: Color::from_rgb_u8(142, 124, 255),
-            ..LiquidThemeSpec::default()
-        },
+        LiquidThemeSpec::system_with_accent(SchemeMode::Dark, Color::from_rgb_u8(142, 124, 255)),
         RootShell,
     );
 }
