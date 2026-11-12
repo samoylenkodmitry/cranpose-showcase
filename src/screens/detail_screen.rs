@@ -289,7 +289,9 @@ fn RelatedRow(
 ///
 /// `on_back` is `None` where the page is not something to come back from —
 /// the split layout keeps the list beside it, so there is nowhere to go.
-#[composable]
+// `on_back` holds an `Rc<dyn Fn()>`, which has no `PartialEq`, so the
+// screen composes again with its caller.
+#[composable(no_skip)]
 pub fn DetailScreen(
     body_index: usize,
     favorite: bool,

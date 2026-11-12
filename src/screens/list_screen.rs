@@ -95,7 +95,7 @@ pub(crate) fn FavoriteButton(favorite: bool, on_toggle: impl Fn() + 'static) {
     let colors = liquid_colors();
     let previous = rememberMutableStateOf(|| favorite);
     let pulse = rememberMutableStateOf(|| 1.0f32);
-    LaunchedEffect(favorite, move |scope| {
+    LaunchedEffect(favorite, move |scope| async move {
         if previous.get() != favorite {
             previous.set(favorite);
             pulse.set(1.45);
