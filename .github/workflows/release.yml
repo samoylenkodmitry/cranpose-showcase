@@ -97,6 +97,8 @@ jobs:
       - uses: ./.github/actions/web-tools
       - name: Build the web bundle
         run: ./build-web.sh
+      - name: Check the wasm features
+        run: scripts/wasm_feature_floor.sh dist/pkg/cranpose_showcase_bg.wasm
       - name: Package the web bundle
         env:
           VERSION: ${{ needs.create-release.outputs.version }}
