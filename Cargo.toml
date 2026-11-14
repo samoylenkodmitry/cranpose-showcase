@@ -80,9 +80,9 @@ renderer-wgpu = ["cranpose/renderer-wgpu"]
 desktop = ["cranpose/desktop"]
 # `release-log-info` compiles the debug and trace log calls out of release
 # builds. The logger Cranpose installs on Android prints Info and above, so
-# those calls never print there, and the library only gets smaller: 150 KB
-# on Cranpose's Android benchmark. A recommended build setting, not a
-# requirement: remove it to keep those calls.
+# those calls never print there. The library of Cranpose's Android benchmark
+# got 150 KB smaller. It is a recommended build setting: remove it to keep
+# those calls.
 android = ["cranpose/android", "cranpose/release-log-info"]
 ios = ["renderer-wgpu", "cranpose/ios"]
 web = ["cranpose/web", "dep:wasm-bindgen", "dep:wasm-logger"]

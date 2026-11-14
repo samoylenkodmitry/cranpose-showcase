@@ -41,8 +41,8 @@
     <key>UIUserInterfaceStyle</key>
     <string>Dark</string>
     <!-- An iPhone with a ProMotion display draws the app at up to 120 Hz
-         only with this key. Without it the app draws at most 60 frames a
-         second. iPads ignore it. -->
+         only with this key. The app draws at most 60 frames a second
+         without it. iPads ignore it. -->
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>UILaunchScreen</key>
