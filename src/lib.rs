@@ -44,6 +44,15 @@ cranpose::android_main! {
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
 use wasm_bindgen::prelude::*;
 
+// The page's allocator grows the WebAssembly memory ahead of need. The
+// standard one grows it a page of 64 KiB at a time: a heavy Cranpose page grew
+// it 3,903 times while it composed its first screen. The page grew it 26
+// times with `Heap`. A library never installs a global allocator, so the app
+// does.
+#[cfg(all(feature = "web", target_arch = "wasm32"))]
+#[global_allocator]
+static HEAP: cranpose::web::Heap = cranpose::web::Heap::new();
+
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
 #[wasm_bindgen(start)]
 pub fn web_init() {
